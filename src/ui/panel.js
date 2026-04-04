@@ -23,10 +23,13 @@ export function buildAndMountPanel() {
     injectStyles();
     const btn = document.createElement("div"); btn.id = ID.trigger; btn.className = "cc-trigger";
     btn.innerHTML = `<div class="cc-trigger-core"><i class="fa-solid fa-box-archive"></i></div>`;
-    document.body.appendChild(btn); makeDraggable(btn, () => openPanel());
+    document.body.appendChild(btn); positionTrigger(btn, { force: true }); makeDraggable(btn, () => openPanel());
     const ov = document.createElement("div"); ov.id = ID.overlay; ov.className = "cc-overlay"; ov.style.display = "none";
     ov.innerHTML = modalHtml(); document.body.appendChild(ov);
     ov.addEventListener("click", (e) => { if (e.target === ov) closePanel(); });
+    const reposition = () => positionTrigger(btn);
+    globalThis.addEventListener?.("resize", reposition);
+    globalThis.addEventListener?.("orientationchange", reposition);
     bindPanelChrome(); applyTheme(currentThemeId);
     enhanceAllTextareas();
 }
@@ -64,7 +67,7 @@ function workspacePage(){return `<section class="cc-page active" data-cc-page="w
         <label class="cc-field"><span>${t("workspace.rangeStart")}</span><input id="cc-range-start" class="cc-input" type="number" min="1" step="1"></label>
         <label class="cc-field"><span>${t("workspace.rangeEnd")}</span><input id="cc-range-end" class="cc-input" type="number" min="1" step="1"></label>
         <label class="cc-field"><span>${t("workspace.defaultRangeSize")}</span><input id="cc-default-range-size" class="cc-input" type="number" min="1" max="200" step="1"></label>
-    </div></div>
+    </div><div class="cc-hint">${t("workspace.rangeHint")}</div></div>
     <div class="cc-card"><label class="cc-field"><span>${t("workspace.filterFragments")}</span><textarea id="cc-summary-filter-fragments" class="cc-textarea" rows="3" placeholder="${t("workspace.filterFragmentsPlaceholder")}"></textarea></label><div class="cc-hint">${t("workspace.filterHint")}</div></div>
     <div class="cc-actions"><button id="cc-fill-next-range" class="cc-btn">${t("workspace.fillRange")}</button><button id="cc-generate-draft" class="cc-btn cc-btn-accent">${t("workspace.generateDraft")}</button><button id="cc-approve-draft" class="cc-btn">${t("workspace.approveDraft")}</button><button id="cc-reject-draft" class="cc-btn">${t("workspace.rejectDraft")}</button><button id="cc-save-settings" class="cc-btn">${t("workspace.saveSettings")}</button></div>
     <div class="cc-card cc-pre" id="cc-draft-preview">${t("workspace.noDraft")}</div>
@@ -369,8 +372,45 @@ export { enhanceAllTextareas };
 function makeDraggable(el,onClick){
     let d=false,sx,sy,sl,st;
     el.addEventListener("pointerdown",e=>{d=false;sx=e.clientX;sy=e.clientY;const r=el.getBoundingClientRect();sl=r.left;st=r.top;el.setPointerCapture(e.pointerId);e.preventDefault();});
-    el.addEventListener("pointermove",e=>{if(!el.hasPointerCapture(e.pointerId))return;const dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)>4||Math.abs(dy)>4)d=true;if(d){el.style.left=`${sl+dx}px`;el.style.top=`${st+dy}px`;el.style.right="auto";el.style.bottom="auto";}});
+    el.addEventListener("pointermove",e=>{if(!el.hasPointerCapture(e.pointerId))return;const dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)>4||Math.abs(dy)>4)d=true;if(d){el.dataset.ccDragged="1";el.style.transform="none";el.style.left=`${sl+dx}px`;el.style.top=`${st+dy}px`;el.style.right="auto";el.style.bottom="auto";}});
     el.addEventListener("pointerup",e=>{el.releasePointerCapture(e.pointerId);if(!d&&onClick)onClick();});
+}
+
+function resolveMobileTriggerTop() {
+    const topBar =
+        document.querySelector(".top-settings-holder") ||
+        document.querySelector("#top-bar");
+
+    if (topBar && typeof topBar.getBoundingClientRect === "function") {
+        return `${Math.max(78, Math.round(topBar.getBoundingClientRect().bottom) + 12)}px`;
+    }
+
+    return "88px";
+}
+
+function positionTrigger(trigger, { force = false } = {}) {
+    if (!trigger) {
+        return;
+    }
+
+    if (!force && trigger.dataset.ccDragged === "1") {
+        return;
+    }
+
+    const isMobile = globalThis.matchMedia?.("(max-width: 720px)")?.matches || globalThis.innerWidth <= 720;
+    trigger.style.left = "auto";
+    trigger.style.transform = "none";
+
+    if (isMobile) {
+        trigger.style.top = resolveMobileTriggerTop();
+        trigger.style.right = "max(12px, env(safe-area-inset-right, 0px))";
+        trigger.style.bottom = "auto";
+        return;
+    }
+
+    trigger.style.top = "auto";
+    trigger.style.right = "18px";
+    trigger.style.bottom = "84px";
 }
 
 /* ===== CSS ===== */
@@ -378,7 +418,7 @@ function injectStyles(){if(document.getElementById(ID.style))return;const s=docu
 
 const CSS = `
 /* Trigger */
-.cc-trigger{position:fixed;right:18px;bottom:110px;z-index:9000;width:44px;height:44px;border-radius:999px;border:1px solid var(--SmartThemeBorderColor,#435366);background:color-mix(in srgb,var(--SmartThemeBlurTintColor,#182028) 88%,transparent);color:var(--SmartThemeFontColor,#eef3f7);cursor:grab;box-shadow:0 6px 20px rgba(0,0,0,.35);touch-action:none;user-select:none;display:flex;align-items:center;justify-content:center;transition:box-shadow .2s}
+.cc-trigger{position:fixed;right:18px;bottom:84px;z-index:9000;width:44px;height:44px;border-radius:999px;border:1px solid var(--SmartThemeBorderColor,#435366);background:color-mix(in srgb,var(--SmartThemeBlurTintColor,#182028) 88%,transparent);color:var(--SmartThemeFontColor,#eef3f7);cursor:grab;box-shadow:0 6px 20px rgba(0,0,0,.35);touch-action:none;user-select:none;display:flex;align-items:center;justify-content:center;transition:box-shadow .2s}
 .cc-trigger:hover{box-shadow:0 8px 28px rgba(0,0,0,.45)}.cc-trigger:active{cursor:grabbing}
 .cc-trigger-core{width:100%;height:100%;display:inline-flex;align-items:center;justify-content:center;border-radius:inherit;font-size:15px}
 
@@ -511,6 +551,7 @@ const CSS = `
 
 /* ===== Mobile ===== */
 @media(max-width:720px){
+    .cc-trigger{right:max(10px, env(safe-area-inset-right, 0px));top:calc(env(safe-area-inset-top, 0px) + 84px);bottom:auto}
     .cc-overlay{align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 12px}
     .cc-modal{width:min(92vw,390px);max-height:min(78dvh,700px);border-radius:16px}
     .cc-header{position:sticky;top:0;z-index:2;padding:12px 12px 8px}
