@@ -34,7 +34,7 @@ AI "remembers" past plot on its next reply
 - **Fetch Models** — One-click model list retrieval for independent API.
 - **Fullscreen editing** — Long prompts and summary text support fullscreen editing; summary fullscreen includes search.
 - **Theme switching** — 7 built-in panel themes, launcher color follows theme.
-- **Mobile responsive** — Panel, fullscreen, and search bar all adapt to small screens.
+- **Mobile responsive** — Panel, fullscreen, and search bar all adapt to small screens, and the launcher avoids awkward first-load placement on mobile.
 - **Bilingual i18n** — Chinese / English, auto-detected.
 
 ---
@@ -62,6 +62,7 @@ Refresh SillyTavern to start using.
 
 1. Tap the **floating ball** (bottom right) to open the panel, or click "Open Panel" in extension settings.
 2. **Workspace**: Set floor range → Generate Summary → Preview → Confirm
+   Here, "floor" simply means chat message order: the first message is 1, the second is 2.
 3. **Summaries**: View status, adjust injection strategy, edit/merge confirmed summaries
 4. **Settings**: Choose theme, configure API, select/edit summary presets and templates
 

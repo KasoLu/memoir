@@ -23,6 +23,7 @@ Expected:
 - A draft is generated for the selected range.
 - Confirming the draft appends text into the cumulative summary.
 - A new approved range appears in the Summary tab.
+- The Workspace copy makes it clear that "floor" means chat message order.
 
 ## 2. Independent API Mode
 
@@ -125,6 +126,7 @@ Expected:
 - The panel remains usable on both widths.
 - Fullscreen editors open correctly.
 - Long summary text remains editable and searchable in fullscreen.
+- On mobile, the floating trigger starts in a stable visible position near the top bar instead of drifting too low or off-screen.
 
 ## Release Gate
 
