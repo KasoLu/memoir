@@ -1,12 +1,12 @@
 import { t } from "../i18n.js";
-import { notify } from "../utils.js";
+import { normalizeNonNegativeInteger, notify } from "../utils.js";
 import { generateDraftForRange } from "../services/summary-draft-service.js";
 import { getDraft, saveDraftSegment } from "../state/chat-segment-store.js";
 import { approveDraft, getCurrentDraft, rejectDraft } from "../services/approval-service.js";
 import { syncInjectionPrompt } from "../services/injection-service.js";
 import { refreshStatusPanel } from "./status-panel.js";
 import { refreshSegmentsPanel } from "./segments-panel.js";
-import { getSettings } from "../state/settings-store.js";
+import { getSettings, updateIndependentApiConfig, updateSettings } from "../state/settings-store.js";
 import { getSuggestedDraftRange } from "../services/range-suggestion-service.js";
 
 let currentDraftId = null;
@@ -34,6 +34,7 @@ export function bindDraftPanel() {
         preview.textContent = t("workspace.generating");
 
         try {
+            syncGenerationSettingsFromForm();
             const draft = await generateDraftForRange({
                 startMes: startFloor - 1,
                 endMes: endFloor - 1,
@@ -80,6 +81,39 @@ export function bindDraftPanel() {
 
     fillSuggestedDraftRange();
     renderCurrentDraft();
+}
+
+function syncGenerationSettingsFromForm() {
+    const settings = getSettings();
+    const defaultRangeSize = Math.max(
+        1,
+        normalizeNonNegativeInteger(
+            getInputValue("cc-default-range-size"),
+            settings.defaultRangeSize || 20,
+        ),
+    );
+
+    updateIndependentApiConfig({
+        model: getInputValue("cc-provider-model").trim(),
+        apiUrl: getInputValue("cc-provider-url").trim(),
+        apiKey: getInputValue("cc-provider-key").trim(),
+    });
+
+    updateSettings({
+        summaryGenerationMode: getInputValue("cc-provider-mode") || settings.summaryGenerationMode,
+        promptProfileId: getInputValue("cc-prompt-profile") || settings.promptProfileId,
+        stylePatchId: getInputValue("cc-style-patch") || settings.stylePatchId,
+        fanficPatchEnabled: isInputChecked("cc-fanfic-patch"),
+        summaryResponseLength: normalizeNonNegativeInteger(
+            getInputValue("cc-summary-response-length"),
+            settings.summaryResponseLength || 0,
+        ),
+        defaultRangeSize,
+        summaryFilterFragments: getInputValue("cc-summary-filter-fragments")
+            .split("\n")
+            .map((item) => item.trim())
+            .filter(Boolean),
+    });
 }
 
 export function fillSuggestedDraftRange() {
@@ -143,4 +177,12 @@ function renderApprovedSummaryPreview(cumulativeSummary) {
         `【${t("draft.archiveBody")}】`,
         cumulativeSummary || t("draft.empty"),
     ].join("\n");
+}
+
+function getInputValue(id) {
+    return document.getElementById(id)?.value ?? "";
+}
+
+function isInputChecked(id) {
+    return !!document.getElementById(id)?.checked;
 }

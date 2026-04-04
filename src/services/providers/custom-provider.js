@@ -63,6 +63,7 @@ export async function runCustomSummaryProvider(request) {
             parsed: null,
             archiveSummary,
             injectSummary: archiveSummary,
+            providerModel: model,
         };
     } finally {
         clearTimeout(timeout);

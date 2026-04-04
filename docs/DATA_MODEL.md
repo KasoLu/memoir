@@ -54,6 +54,23 @@ Current shape:
 }
 ```
 
+## API Profile Shape
+
+Stored inside:
+
+- `extension_settings.chat_compactor.apiProfiles`
+
+```json
+{
+  "id": "profile_...",
+  "name": "My API Profile",
+  "apiUrl": "",
+  "apiKey": "",
+  "model": "",
+  "summaryGenerationMode": "independent-api"
+}
+```
+
 ## Approved Range Shape
 
 Each entry in `approvedRanges`:
@@ -101,6 +118,8 @@ Drafts are provider outputs that have not been approved yet.
   "createdAt": 0
 }
 ```
+
+`providerInfo.model` only shows the model name returned or used by the resolved provider path. It is no longer filled with the independent model name when the actual resolved mode is `shared-api`.
 
 ## Custom Prompt Profile Shape
 

@@ -39,6 +39,11 @@ export async function generateDraftForRange({ startMes, endMes }) {
     };
 
     const response = await runSummaryProvider(providerRequest, settings);
+    const resolvedMode = response.providerResolved || settings.summaryGenerationMode;
+    const resolvedModel =
+        resolvedMode === "independent-api"
+            ? response.providerModel || settings.independentApiConfig.model || ""
+            : response.providerModel || "";
 
     return {
         id: `draft_${Date.now()}`,
@@ -52,10 +57,10 @@ export async function generateDraftForRange({ startMes, endMes }) {
         fanficPatchEnabled: settings.fanficPatchEnabled,
         providerInfo: {
             requestedMode: settings.summaryGenerationMode,
-            resolvedMode: response.providerResolved || settings.summaryGenerationMode,
+            resolvedMode,
             fallbackUsed: !!response.providerFallbackUsed,
             fallbackReason: response.providerFallbackReason || "",
-            model: settings.independentApiConfig.model || "",
+            model: resolvedModel,
         },
         createdAt: Date.now(),
     };

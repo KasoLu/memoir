@@ -73,6 +73,16 @@ Refresh SillyTavern to start using.
 
 ---
 
+## Related Docs
+
+- **Changelog** — [CHANGELOG.md](CHANGELOG.md)
+- **Troubleshooting** — [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+- **Manual Testing Checklist** — [docs/MANUAL_TESTING.md](docs/MANUAL_TESTING.md)
+- **Architecture** — [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- **Data Model** — [docs/DATA_MODEL.md](docs/DATA_MODEL.md)
+
+---
+
 ## License
 
 [AGPL-3.0](LICENSE)

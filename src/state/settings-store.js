@@ -64,12 +64,16 @@ export function saveCurrentApiProfile(name) {
         apiUrl: settings.independentApiConfig.apiUrl || "",
         apiKey: settings.independentApiConfig.apiKey || "",
         model: settings.independentApiConfig.model || "",
+        summaryGenerationMode: normalizeApiProfileMode({
+            summaryGenerationMode: settings.summaryGenerationMode,
+        }),
     };
 
     if (existing) {
         existing.apiUrl = snapshot.apiUrl;
         existing.apiKey = snapshot.apiKey;
         existing.model = snapshot.model;
+        existing.summaryGenerationMode = snapshot.summaryGenerationMode;
         settings.currentApiProfileId = existing.id;
     } else {
         const profile = {
@@ -83,6 +87,31 @@ export function saveCurrentApiProfile(name) {
 
     saveSettingsDebounced();
     return settings.currentApiProfileId;
+}
+
+export function saveActiveApiProfile() {
+    const settings = loadSettings();
+    const currentId = settings.currentApiProfileId;
+    if (!currentId) {
+        saveSettingsDebounced();
+        return null;
+    }
+
+    const profile = (settings.apiProfiles || []).find((item) => item.id === currentId) || null;
+    if (!profile) {
+        saveSettingsDebounced();
+        return null;
+    }
+
+    profile.apiUrl = settings.independentApiConfig.apiUrl || "";
+    profile.apiKey = settings.independentApiConfig.apiKey || "";
+    profile.model = settings.independentApiConfig.model || "";
+    profile.summaryGenerationMode = normalizeApiProfileMode({
+        summaryGenerationMode: settings.summaryGenerationMode,
+    });
+
+    saveSettingsDebounced();
+    return profile;
 }
 
 export function applyApiProfile(profileId) {
@@ -105,6 +134,7 @@ export function applyApiProfile(profileId) {
         apiKey: profile.apiKey || "",
         model: profile.model || "",
     };
+    settings.summaryGenerationMode = normalizeApiProfileMode(profile);
 
     saveSettingsDebounced();
     return profile;
@@ -153,7 +183,27 @@ function migrateLegacySettings(bucket) {
         DEFAULT_SETTINGS.fusionResponseLength,
     );
     bucket.independentApiConfig ||= structuredClone(DEFAULT_SETTINGS.independentApiConfig);
-    bucket.apiProfiles ||= [];
+    bucket.apiProfiles = (bucket.apiProfiles || []).map((profile) => ({
+        ...profile,
+        summaryGenerationMode: normalizeApiProfileMode(profile),
+    }));
     bucket.currentApiProfileId ||= "";
     bucket.customPromptProfiles ||= [];
+}
+
+function normalizeApiProfileMode(profile) {
+    const explicit = String(profile?.summaryGenerationMode || "").trim();
+    if (explicit === "shared-api" || explicit === "independent-api") {
+        return explicit;
+    }
+
+    if (
+        String(profile?.apiUrl || "").trim() ||
+        String(profile?.apiKey || "").trim() ||
+        String(profile?.model || "").trim()
+    ) {
+        return "independent-api";
+    }
+
+    return DEFAULT_SETTINGS.summaryGenerationMode;
 }

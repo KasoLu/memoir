@@ -126,7 +126,7 @@ function settingsPage(){
         <div class="cc-g2"><label class="cc-field"><span>${t("settings.providerMode")}</span><select id="cc-provider-mode" class="cc-input"><option value="shared-api">${t("settings.providerModeShared")}</option><option value="independent-api">${t("settings.providerModeIndependent")}</option></select></label><label class="cc-field"><span>${t("settings.apiProfile")}</span><select id="cc-api-profile-select" class="cc-input"><option value="">${t("settings.apiProfileManual")}</option></select></label></div>
         <div class="cc-g2"><label class="cc-field"><span>${t("settings.apiUrl")}</span><input id="cc-provider-url" class="cc-input" type="text" placeholder="https://..."></label><label class="cc-field"><span>${t("settings.apiKey")}</span><input id="cc-provider-key" class="cc-input" type="password"></label></div>
         <div class="cc-g2"><label class="cc-field"><span>${t("settings.model")}</span><div class="cc-input-row"><input id="cc-provider-model" class="cc-input" type="text"><button id="cc-fetch-models" class="cc-btn cc-btn-sm" title="Fetch Models"><i class="fa-solid fa-rotate"></i></button></div></label><label class="cc-field"><span>&nbsp;</span><select id="cc-model-list" class="cc-input" style="display:none;"></select></label></div>
-        <div class="cc-actions"><button id="cc-api-profile-save" class="cc-btn">${t("settings.apiProfileSave")}</button><button id="cc-api-profile-delete" class="cc-btn">${t("settings.apiProfileDelete")}</button></div>
+        <div class="cc-actions"><button id="cc-api-save" class="cc-btn">${t("settings.apiSave")}</button><button id="cc-api-profile-save" class="cc-btn">${t("settings.apiProfileSave")}</button><button id="cc-api-profile-delete" class="cc-btn">${t("settings.apiProfileDelete")}</button></div>
         </div>
     </div>
     <div class="cc-card cc-collapsible">
@@ -217,7 +217,9 @@ function bindPanelChrome(){
         const url=document.getElementById("cc-provider-url")?.value, key=document.getElementById("cc-provider-key")?.value;
         const mi=document.getElementById("cc-provider-model"), ml=document.getElementById("cc-model-list");
         try{const models=await fetchAvailableModels(url,key);if(!models.length){notify("warning","未找到可用模型");return;}
-            if(ml){ml.innerHTML=models.map(m=>`<option value="${m}">${m}</option>`).join("");ml.style.display="";ml.value=mi?.value||models[0];ml.onchange=()=>{if(mi)mi.value=ml.value;};}
+            if(ml){ml.innerHTML=models.map(m=>`<option value="${m}">${m}</option>`).join("");ml.style.display="";ml.value=mi?.value||models[0];
+                if(mi){mi.value=ml.value;mi.dispatchEvent(new Event("change",{bubbles:true}));}
+                ml.onchange=()=>{if(mi){mi.value=ml.value;mi.dispatchEvent(new Event("change",{bubbles:true}));}};}
             notify("success",`获取到 ${models.length} 个模型`);
         }catch(err){notify("error",`获取模型失败: ${err.message}`);}
     });

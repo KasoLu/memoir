@@ -17,5 +17,6 @@ export async function runStSummaryProvider(request) {
         parsed: null,
         archiveSummary,
         injectSummary: archiveSummary,
+        providerModel: "",
     };
 }

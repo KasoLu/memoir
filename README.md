@@ -73,6 +73,16 @@ git clone https://github.com/Asobi-123/memoir.git
 
 ---
 
+## 相关文档
+
+- **更新日志** — [CHANGELOG.md](CHANGELOG.md)
+- **常见问题排查** — [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+- **发布前手动检查** — [docs/MANUAL_TESTING.md](docs/MANUAL_TESTING.md)
+- **架构说明** — [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- **数据模型** — [docs/DATA_MODEL.md](docs/DATA_MODEL.md)
+
+---
+
 ## 项目结构
 
 ```
@@ -91,7 +101,7 @@ src/
   services/            — LLM 路由、总结、注入、融合、哈希
   prompts/             — 预设、模板资产
   ui/                  — 浮动面板、Tab 页、表单绑定
-docs/                  — 架构与数据模型文档
+docs/                  — 架构、数据模型、发布文档
 ```
 
 ---

@@ -6,6 +6,7 @@ import {
     deleteCurrentApiProfile,
     getSettings,
     listApiProfiles,
+    saveActiveApiProfile,
     saveCurrentApiProfile,
     updateIndependentApiConfig,
     updateSettings,
@@ -150,6 +151,64 @@ function fillForm() {
 }
 
 function bindSettingsEvents() {
+    const syncLiveGenerationSettings = ({ refreshRange = false } = {}) => {
+        const settings = getSettings();
+        updateIndependentApiConfig({
+            model: getValue("cc-provider-model").trim(),
+            apiUrl: getValue("cc-provider-url").trim(),
+            apiKey: getValue("cc-provider-key").trim(),
+        });
+        updateSettings({
+            summaryGenerationMode: getValue("cc-provider-mode") || settings.summaryGenerationMode,
+            summaryResponseLength: normalizeNonNegativeInteger(
+                getValue("cc-summary-response-length"),
+                settings.summaryResponseLength || 0,
+            ),
+            fusionResponseLength: normalizeNonNegativeInteger(
+                getValue("cc-fusion-response-length"),
+                settings.fusionResponseLength || 0,
+            ),
+            defaultRangeSize: Math.max(
+                1,
+                normalizeNonNegativeInteger(getValue("cc-default-range-size"), settings.defaultRangeSize || 20),
+            ),
+            summaryFilterFragments: getValue("cc-summary-filter-fragments")
+                .split("\n")
+                .map((item) => item.trim())
+                .filter(Boolean),
+        });
+        refreshStatusPanel();
+        if (refreshRange) {
+            fillSuggestedDraftRange();
+        }
+    };
+
+    for (const id of [
+        "cc-provider-mode",
+        "cc-provider-url",
+        "cc-provider-key",
+        "cc-provider-model",
+        "cc-summary-response-length",
+        "cc-fusion-response-length",
+    ]) {
+        document.getElementById(id)?.addEventListener("change", () => {
+            syncLiveGenerationSettings();
+        });
+    }
+
+    document.getElementById("cc-model-list")?.addEventListener("change", () => {
+        setValue("cc-provider-model", getValue("cc-model-list"));
+        syncLiveGenerationSettings();
+    });
+
+    document.getElementById("cc-default-range-size")?.addEventListener("change", () => {
+        syncLiveGenerationSettings({ refreshRange: true });
+    });
+
+    document.getElementById("cc-summary-filter-fragments")?.addEventListener("change", () => {
+        syncLiveGenerationSettings();
+    });
+
     // Injection controls — auto-save on change
     for (const id of ["cc-auto-inject", "cc-inject-position", "cc-inject-depth", "cc-inject-role", "cc-inject-wrap-tag"]) {
         const evType = id === "cc-inject-wrap-tag" ? "change" : "change";
@@ -278,16 +337,45 @@ function bindSettingsEvents() {
         refreshStatusPanel();
     });
 
+    document.getElementById("cc-api-save")?.addEventListener("click", () => {
+        const currentProfileId = getValue("cc-api-profile-select");
+        const currentProfile = listApiProfiles().find((profile) => profile.id === currentProfileId) || null;
+
+        updateSettings({
+            summaryGenerationMode: getValue("cc-provider-mode") || getSettings().summaryGenerationMode,
+        });
+        updateIndependentApiConfig({
+            model: getValue("cc-provider-model").trim(),
+            apiUrl: getValue("cc-provider-url").trim(),
+            apiKey: getValue("cc-provider-key").trim(),
+        });
+
+        if (!currentProfile) {
+            notify("success", t("toast.apiSettingsSaved"));
+            refreshStatusPanel();
+            return;
+        }
+
+        const savedProfile = saveActiveApiProfile();
+        populateApiProfileOptions();
+        fillForm();
+        notify("success", t("toast.apiProfileUpdated", { name: savedProfile?.name || currentProfile.name }));
+        refreshStatusPanel();
+    });
+
     document.getElementById("cc-api-profile-save")?.addEventListener("click", () => {
         const name = globalThis.prompt?.(t("apiProfilePrompt"));
         if (!name) {
             return;
         }
         try {
+            updateSettings({
+                summaryGenerationMode: getValue("cc-provider-mode") || getSettings().summaryGenerationMode,
+            });
             updateIndependentApiConfig({
-                model: getValue("cc-provider-model"),
-                apiUrl: getValue("cc-provider-url"),
-                apiKey: getValue("cc-provider-key"),
+                model: getValue("cc-provider-model").trim(),
+                apiUrl: getValue("cc-provider-url").trim(),
+                apiKey: getValue("cc-provider-key").trim(),
             });
             saveCurrentApiProfile(name);
             populateApiProfileOptions();
