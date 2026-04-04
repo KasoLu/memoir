@@ -35,6 +35,7 @@ export async function generateDraftForRange({ startMes, endMes }) {
         messages,
         sourceHash,
         promptBundle,
+        maxTokens: Number(settings.summaryResponseLength) > 0 ? Number(settings.summaryResponseLength) : 0,
     };
 
     const response = await runSummaryProvider(providerRequest, settings);

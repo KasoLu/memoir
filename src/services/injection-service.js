@@ -15,16 +15,10 @@ export async function syncInjectionPrompt() {
         return;
     }
 
-    let text = getCumulativeSummary().trim();
+    let text = buildApprovedSummaryInjectionText(getCumulativeSummary(), settings);
     if (!text) {
         clearInjectionPrompt();
         return;
-    }
-
-    // Wrap with tag if configured
-    const tag = String(settings.injectionWrapTag || "").trim();
-    if (tag) {
-        text = `<${tag}>\n${text}\n</${tag}>`;
     }
 
     const position = settings.injectionPosition ?? extension_prompt_types.IN_PROMPT;
@@ -39,6 +33,20 @@ export async function syncInjectionPrompt() {
         false,
         role,
     );
+}
+
+export function buildApprovedSummaryInjectionText(summaryText, settings = getSettings()) {
+    let text = String(summaryText || "").trim();
+    if (!text) {
+        return "";
+    }
+
+    const tag = String(settings.injectionWrapTag || "").trim();
+    if (tag) {
+        text = `<${tag}>\n${text}\n</${tag}>`;
+    }
+
+    return text;
 }
 
 export function clearInjectionPrompt() {

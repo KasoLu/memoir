@@ -15,6 +15,7 @@ export function abortCurrentGeneration() {
 export async function runCustomSummaryProvider(request) {
     const settings = getSettings();
     const { apiUrl, apiKey, model } = settings.independentApiConfig;
+    const maxTokens = Number(request.maxTokens);
 
     if (!apiUrl || !model) {
         throw new Error("Custom provider requires API URL and model.");
@@ -37,6 +38,7 @@ export async function runCustomSummaryProvider(request) {
                     { role: "system", content: request.promptBundle.systemPrompt },
                     { role: "user", content: request.promptBundle.userPrompt },
                 ],
+                ...(maxTokens > 0 ? { max_tokens: maxTokens } : {}),
                 temperature: 0.2,
                 stream: false,
             }),

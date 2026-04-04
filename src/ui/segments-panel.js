@@ -1,5 +1,5 @@
 import { t } from "../i18n.js";
-import { notify } from "../utils.js";
+import { debounce, notify } from "../utils.js";
 import {
     clearAllApprovedSummaries,
     getApprovedBaselineSummary,
@@ -8,13 +8,21 @@ import {
 } from "../state/chat-segment-store.js";
 import { runFusionCompression } from "../services/fusion-service.js";
 import { syncInjectionPrompt } from "../services/injection-service.js";
+import { getApprovedSummaryTokenStats } from "../services/summary-token-service.js";
 import { refreshStatusPanel } from "./status-panel.js";
 import { enhanceAllTextareas } from "./panel.js";
+import {
+    describeTokenStats,
+    formatBudgetValue,
+    formatContextValue,
+    formatTokenValue,
+} from "./token-stats-ui.js";
 
 let isFusing = false;
 let fuseSelection = { start: "", end: "" };
 let lastSearchText = "";
 let lastSearchPos = -1;
+let tokenRenderVersion = 0;
 
 export function refreshSegmentsPanel() {
     const root = document.getElementById("cc-segment-list");
@@ -27,6 +35,16 @@ export function refreshSegmentsPanel() {
     const summary = getCumulativeSummary();
     root.innerHTML = `
       <div class="cc-hint" style="margin-bottom:12px">${esc(t("segments.desc"))}</div>
+      <div class="cc-card">
+        <div class="cc-card-head"><strong>${esc(t("segments.tokenStats"))}</strong></div>
+        <div class="cc-token-grid">
+          <div class="cc-token-item"><span>${esc(t("token.summaryText"))}</span><strong id="cc-summary-body-tokens">...</strong></div>
+          <div class="cc-token-item"><span>${esc(t("token.injectionText"))}</span><strong id="cc-summary-injection-tokens">...</strong></div>
+          <div class="cc-token-item"><span>${esc(t("token.budget"))}</span><strong id="cc-summary-budget-tokens">...</strong></div>
+          <div class="cc-token-item"><span>${esc(t("token.contextWindow"))}</span><strong id="cc-summary-context-tokens">...</strong></div>
+        </div>
+        <div id="cc-summary-token-note" class="cc-token-note">${esc(t("segments.tokenLoading"))}</div>
+      </div>
       <div class="cc-card">
         <div class="cc-g2">
           <label class="cc-field"><span>${esc(t("segments.fuseStart"))}</span>
@@ -56,17 +74,20 @@ export function refreshSegmentsPanel() {
 }
 
 function bindActions(root) {
+    const ta = root.querySelector("#cc-cumulative-summary");
+    bindTokenStats(root, ta);
+
     root.querySelector("#cc-cumulative-save")?.addEventListener("click", async () => {
-        const ta = root.querySelector("#cc-cumulative-summary");
         if (!(ta instanceof HTMLTextAreaElement)) return;
         saveCumulativeSummary(ta.value); await syncInjectionPrompt(); refreshStatusPanel();
+        void renderTokenStats(root, ta.value);
         notify("success", t("toast.cumulativeSaved"));
     });
     root.querySelector("#cc-cumulative-reset")?.addEventListener("click", async () => {
         const bl = getApprovedBaselineSummary();
-        const ta = root.querySelector("#cc-cumulative-summary");
         if (ta instanceof HTMLTextAreaElement) ta.value = bl;
         saveCumulativeSummary(bl); await syncInjectionPrompt(); refreshStatusPanel();
+        void renderTokenStats(root, bl);
         notify("info", t("toast.cumulativeReset"));
     });
     root.querySelector("#cc-cumulative-clear")?.addEventListener("click", async () => {
@@ -85,6 +106,19 @@ function bindActions(root) {
             await syncInjectionPrompt(); refreshStatusPanel(); notify("success", t("toast.fusionDone"));
         } catch (e) { notify("error", e.message); } finally { isFusing = false; refreshSegmentsPanel(); }
     });
+}
+
+function bindTokenStats(root, textarea) {
+    if (!(textarea instanceof HTMLTextAreaElement)) {
+        return;
+    }
+
+    const debouncedRender = debounce((value) => {
+        void renderTokenStats(root, value);
+    }, 180);
+
+    void renderTokenStats(root, textarea.value);
+    textarea.addEventListener("input", () => debouncedRender(textarea.value));
 }
 
 function bindSearch(root) {
@@ -150,6 +184,38 @@ function scrollToPosition(textarea, charIndex) {
     const markerTop = marker.offsetTop;
     document.body.removeChild(mirror);
     textarea.scrollTop = Math.max(0, markerTop - textarea.clientHeight / 3);
+}
+
+async function renderTokenStats(root, summaryText) {
+    const renderId = ++tokenRenderVersion;
+    const note = root.querySelector("#cc-summary-token-note");
+    if (note) {
+        note.textContent = t("segments.tokenLoading");
+        note.classList.remove("cc-token-warning");
+    }
+
+    const stats = await getApprovedSummaryTokenStats(summaryText);
+    if (!root.isConnected || renderId !== tokenRenderVersion) {
+        return;
+    }
+
+    setText(root, "#cc-summary-body-tokens", formatTokenValue(stats.summaryTokens, t));
+    setText(root, "#cc-summary-injection-tokens", formatTokenValue(stats.injectedTokens, t));
+    setText(root, "#cc-summary-budget-tokens", formatBudgetValue(stats.budgetTokens, t));
+    setText(root, "#cc-summary-context-tokens", formatContextValue(stats.maxContext, t));
+
+    const summary = describeTokenStats(stats, t);
+    if (note) {
+        note.textContent = summary.text;
+        note.classList.toggle("cc-token-warning", summary.warning);
+    }
+}
+
+function setText(root, selector, value) {
+    const element = root.querySelector(selector);
+    if (element) {
+        element.textContent = value;
+    }
 }
 
 function esc(s) { return String(s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }

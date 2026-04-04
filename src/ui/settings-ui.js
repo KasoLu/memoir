@@ -1,6 +1,6 @@
 import { SETTINGS_MOUNT_SELECTOR } from "../constants.js";
 import { t } from "../i18n.js";
-import { notify } from "../utils.js";
+import { normalizeNonNegativeInteger, notify } from "../utils.js";
 import {
     applyApiProfile,
     deleteCurrentApiProfile,
@@ -135,6 +135,10 @@ function fillForm() {
     setValue("cc-inject-depth", settings.injectionDepth ?? 1);
     setValue("cc-inject-role", settings.injectionRole ?? 0);
     setValue("cc-inject-wrap-tag", settings.injectionWrapTag || "");
+    setValue("cc-summary-response-length", settings.summaryResponseLength ?? 0);
+    setValue("cc-fusion-response-length", settings.fusionResponseLength ?? 0);
+    setValue("cc-summary-token-budget-percent", settings.summaryTokenBudgetPercent ?? 25);
+    setValue("cc-summary-token-budget-cap", settings.summaryTokenBudgetCap ?? 0);
     updatePositionHint();
     setValue("cc-default-range-size", settings.defaultRangeSize);
     setValue(
@@ -157,12 +161,12 @@ function bindSettingsEvents() {
                 injectionPosition: Number(getValue("cc-inject-position")) || 0,
                 injectionDepth: Number(getValue("cc-inject-depth")) || 1,
                 injectionRole: Number(getValue("cc-inject-role")) || 0,
-            injectionWrapTag: getValue("cc-inject-wrap-tag").trim(),
                 injectionWrapTag: getValue("cc-inject-wrap-tag").trim(),
             });
             updatePositionHint();
             await syncInjectionPrompt();
             refreshStatusPanel();
+            refreshSegmentsPanel();
         });
     }
     // Also update hint on position change
@@ -397,6 +401,10 @@ function bindSettingsEvents() {
             promptProfileId: getValue("cc-prompt-profile"),
             stylePatchId: getValue("cc-style-patch"),
             fanficPatchEnabled: isChecked("cc-fanfic-patch"),
+            summaryResponseLength: normalizeNonNegativeInteger(getValue("cc-summary-response-length"), 0),
+            fusionResponseLength: normalizeNonNegativeInteger(getValue("cc-fusion-response-length"), 0),
+            summaryTokenBudgetPercent: Math.min(100, normalizeNonNegativeInteger(getValue("cc-summary-token-budget-percent"), 0)),
+            summaryTokenBudgetCap: normalizeNonNegativeInteger(getValue("cc-summary-token-budget-cap"), 0),
             autoInjectApproved: isChecked("cc-auto-inject"),
             injectionPosition: Number(getValue("cc-inject-position")) || 0,
             injectionDepth: Number(getValue("cc-inject-depth")) || 1,

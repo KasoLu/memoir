@@ -7,8 +7,6 @@ import {
 } from "../state/chat-segment-store.js";
 import { runSummaryProvider } from "./provider-router.js";
 
-const FUSION_MAX_TOKENS = 2600;
-
 export async function runFusionCompression({ startIndex = null, endIndex = null } = {}) {
     const current = getCumulativeSummary().trim();
     if (!current) {
@@ -40,7 +38,7 @@ export async function runFusionCompression({ startIndex = null, endIndex = null 
 
     const providerRequest = {
         promptBundle: { systemPrompt, userPrompt },
-        maxTokens: FUSION_MAX_TOKENS,
+        maxTokens: Number(settings.fusionResponseLength) > 0 ? Number(settings.fusionResponseLength) : 0,
     };
 
     const response = await runSummaryProvider(providerRequest, settings);

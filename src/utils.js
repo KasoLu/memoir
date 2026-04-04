@@ -48,6 +48,28 @@ export function debounce(fn, ms) {
 }
 
 /**
+ * Normalize a numeric setting to a non-negative integer.
+ */
+export function normalizeNonNegativeInteger(value, fallback = 0) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric) || numeric < 0) {
+        return fallback;
+    }
+    return Math.floor(numeric);
+}
+
+/**
+ * Clamp a numeric setting into a fixed range.
+ */
+export function clampNumber(value, min, max, fallback = min) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) {
+        return fallback;
+    }
+    return Math.min(max, Math.max(min, numeric));
+}
+
+/**
  * Fetch available models from an OpenAI-compatible /v1/models endpoint.
  */
 export async function fetchAvailableModels(apiUrl, apiKey) {

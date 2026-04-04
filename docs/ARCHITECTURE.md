@@ -36,6 +36,7 @@ Memoir (古法 Memoir) is a third-party SillyTavern extension that provides cont
 │  approval-service.js — confirm/discard  │
 │  injection-service.js — context inject  │
 │  fusion-service.js — merge & compress   │
+│  summary-token-service.js — token stats │
 │  segment-hash-service.js — SHA-256      │
 │  stale-detection-service.js             │
 │  range-state-service.js                 │
@@ -70,7 +71,14 @@ All panel styles are in `panel.js` as a template literal, injected as a `<style>
 When source messages are edited after a summary is confirmed, the summary is flagged as "changed" but continues to work. No hard disabling.
 
 ### Provider router with fallback
-Independent API mode falls back to shared API if config is incomplete. Both providers support a `maxTokens` parameter for different use cases (summary vs fusion).
+Independent API mode falls back to shared API if config is incomplete. Summary generation and fusion each have their own output-length setting. `0` means "follow SillyTavern's global response length". Shared API omits `responseLength` when set to `0`, while independent API only sends `max_tokens` when the configured value is greater than `0`.
+
+### Token budget monitoring
+Confirmed summaries can be measured with SillyTavern's token counter. Memoir tracks both raw summary text and the final wrapped injection text, then compares the wrapped result against a warning line derived from context size:
+
+- `summaryTokenBudgetPercent` = percentage of `maxContext`
+- `summaryTokenBudgetCap` = optional hard cap
+- if both are set, the smaller value wins
 
 ### Prompt presets save patch state
 Custom prompt presets store their associated style template and fanfic template selections, so switching presets restores the full configuration.

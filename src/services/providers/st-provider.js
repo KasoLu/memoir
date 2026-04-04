@@ -1,13 +1,12 @@
 import { getContext } from "/scripts/extensions.js";
 
-const DEFAULT_RESPONSE_LENGTH = 2200;
-
 export async function runStSummaryProvider(request) {
     const context = getContext();
+    const responseLength = Number(request.maxTokens);
     const rawText = await context.generateRaw({
         prompt: request.promptBundle.userPrompt,
         systemPrompt: request.promptBundle.systemPrompt,
-        responseLength: request.maxTokens || DEFAULT_RESPONSE_LENGTH,
+        ...(responseLength > 0 ? { responseLength } : {}),
         trimNames: true,
     });
 
