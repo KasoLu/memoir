@@ -137,8 +137,6 @@ function fillForm() {
     setValue("cc-inject-wrap-tag", settings.injectionWrapTag || "");
     setValue("cc-summary-response-length", settings.summaryResponseLength ?? 0);
     setValue("cc-fusion-response-length", settings.fusionResponseLength ?? 0);
-    setValue("cc-summary-token-budget-percent", settings.summaryTokenBudgetPercent ?? 25);
-    setValue("cc-summary-token-budget-cap", settings.summaryTokenBudgetCap ?? 0);
     updatePositionHint();
     setValue("cc-default-range-size", settings.defaultRangeSize);
     setValue(
@@ -403,8 +401,6 @@ function bindSettingsEvents() {
             fanficPatchEnabled: isChecked("cc-fanfic-patch"),
             summaryResponseLength: normalizeNonNegativeInteger(getValue("cc-summary-response-length"), 0),
             fusionResponseLength: normalizeNonNegativeInteger(getValue("cc-fusion-response-length"), 0),
-            summaryTokenBudgetPercent: Math.min(100, normalizeNonNegativeInteger(getValue("cc-summary-token-budget-percent"), 0)),
-            summaryTokenBudgetCap: normalizeNonNegativeInteger(getValue("cc-summary-token-budget-cap"), 0),
             autoInjectApproved: isChecked("cc-auto-inject"),
             injectionPosition: Number(getValue("cc-inject-position")) || 0,
             injectionDepth: Number(getValue("cc-inject-depth")) || 1,

@@ -71,8 +71,10 @@ function workspacePage(){return `<section class="cc-page active" data-cc-page="w
 </section>`;}
 function summaryPage(){return `<section class="cc-page" data-cc-page="summary">
     <div id="cc-status-box" class="cc-card"></div>
-    <div class="cc-card">
-        <div class="cc-card-head"><strong>${t("inject.title")}</strong></div>
+    <div class="cc-card cc-collapsible cc-collapsed">
+        <div class="cc-card-head cc-collapse-toggle"><strong>${t("inject.title")}</strong><i class="fa-solid fa-chevron-down cc-collapse-icon"></i></div>
+        <div class="cc-collapse-body">
+        <div class="cc-hint">${t("inject.strategyDesc")}</div>
         <div class="cc-inject-row">
             <label class="cc-field-row"><input id="cc-auto-inject" type="checkbox"><span>${t("inject.enable")}</span></label>
             <div class="cc-hint" style="margin:0;padding-left:26px">${t("inject.enableDesc")}</div>
@@ -105,6 +107,7 @@ function summaryPage(){return `<section class="cc-page" data-cc-page="summary">
             </label>
         </div>
         <div class="cc-inject-note">${t("inject.attentionNote")}</div>
+        </div>
     </div>
     <div id="cc-segment-list">${t("segments.empty")}</div>
 </section>`;}
@@ -134,11 +137,6 @@ function settingsPage(){
             <label class="cc-field"><span>${t("settings.fusionResponseLength")}</span><input id="cc-fusion-response-length" class="cc-input" type="number" min="0" step="1"></label>
         </div>
         <div class="cc-hint">${t("settings.responseLengthHint")}</div>
-        <div class="cc-g2" style="margin-top:10px">
-            <label class="cc-field"><span>${t("settings.summaryTokenBudgetPercent")}</span><input id="cc-summary-token-budget-percent" class="cc-input" type="number" min="0" max="100" step="1"></label>
-            <label class="cc-field"><span>${t("settings.summaryTokenBudgetCap")}</span><input id="cc-summary-token-budget-cap" class="cc-input" type="number" min="0" step="1"></label>
-        </div>
-        <div class="cc-hint">${t("settings.tokenBudgetHint")}</div>
         </div>
     </div>
     <div class="cc-card cc-collapsible">
@@ -154,6 +152,7 @@ function settingsPage(){
         <div class="cc-collapse-body">
         <label class="cc-field"><span>${t("settings.systemPrompt")}</span><textarea id="cc-prompt-system" class="cc-textarea" rows="10"></textarea></label>
         <label class="cc-field"><span>${t("settings.userTemplate")}</span><textarea id="cc-prompt-user-template" class="cc-textarea" rows="10"></textarea></label>
+        <div class="cc-hint">${t("settings.promptVariableHint")}</div>
         </div>
     </div>
     <div class="cc-card cc-collapsible cc-collapsed">
@@ -466,7 +465,6 @@ const CSS = `
 .cc-token-item span{display:block;font-size:.82em;color:var(--cc-dim);margin-bottom:4px}
 .cc-token-item strong{display:block;font-size:1em;font-weight:700;color:var(--cc-text)}
 .cc-token-note{margin-top:10px;padding:10px 12px;border-radius:10px;background:color-mix(in srgb,var(--cc-field) 55%,transparent);border:1px solid color-mix(in srgb,var(--cc-border) 25%,transparent);font-size:.84em;line-height:1.55;color:var(--cc-text)}
-.cc-token-warning{border-color:color-mix(in srgb,#f0b35a 50%,transparent);background:color-mix(in srgb,#f0b35a 16%,transparent);color:#f4d39b}
 
 /* Fullscreen expand button */
 .cc-fullscreen-btn{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:8px;border:1px solid color-mix(in srgb,var(--cc-border) 40%,transparent);background:color-mix(in srgb,var(--cc-surface) 80%,transparent);color:var(--cc-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;opacity:.5;transition:opacity .15s;z-index:1}
@@ -492,8 +490,6 @@ const CSS = `
 .cc-status-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:3px 0;font-size:.88em}
 .cc-status-row span{color:var(--cc-dim)}.cc-status-row strong{font-weight:600;font-size:.92em}
 .cc-status-on{color:var(--cc-accent)}
-.cc-status-warning{color:#f0b35a}
-.cc-status-note{margin-bottom:12px}
 .cc-status-floors{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .cc-status-floor-item{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:6px 10px;border:1px solid color-mix(in srgb,var(--cc-border) 30%,transparent);border-radius:10px;background:color-mix(in srgb,var(--cc-field) 40%,transparent);font-size:.84em}
 .cc-status-floor-item span{color:var(--cc-dim);white-space:nowrap}

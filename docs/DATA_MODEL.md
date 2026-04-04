@@ -24,8 +24,6 @@ Current shape:
   "fanficPatchEnabled": false,
   "summaryResponseLength": 0,
   "fusionResponseLength": 0,
-  "summaryTokenBudgetPercent": 25,
-  "summaryTokenBudgetCap": 0,
   "autoInjectApproved": true,
   "injectionPosition": 0,
   "injectionDepth": 1,

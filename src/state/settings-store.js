@@ -1,7 +1,7 @@
 import { extension_settings } from "/scripts/extensions.js";
 import { saveSettingsDebounced } from "/script.js";
 import { EXTENSION_ID } from "../constants.js";
-import { clampNumber, normalizeNonNegativeInteger } from "../utils.js";
+import { normalizeNonNegativeInteger } from "../utils.js";
 import { DEFAULT_SETTINGS } from "./defaults.js";
 
 export function loadSettings() {
@@ -140,6 +140,8 @@ function migrateLegacySettings(bucket) {
 
     // Clean up removed settings from older versions
     delete bucket.keepRecentMessages;
+    delete bucket.summaryTokenBudgetPercent;
+    delete bucket.summaryTokenBudgetCap;
 
     bucket.summaryGenerationMode ||= DEFAULT_SETTINGS.summaryGenerationMode;
     bucket.summaryResponseLength = normalizeNonNegativeInteger(
@@ -149,16 +151,6 @@ function migrateLegacySettings(bucket) {
     bucket.fusionResponseLength = normalizeNonNegativeInteger(
         bucket.fusionResponseLength,
         DEFAULT_SETTINGS.fusionResponseLength,
-    );
-    bucket.summaryTokenBudgetPercent = clampNumber(
-        bucket.summaryTokenBudgetPercent,
-        0,
-        100,
-        DEFAULT_SETTINGS.summaryTokenBudgetPercent,
-    );
-    bucket.summaryTokenBudgetCap = normalizeNonNegativeInteger(
-        bucket.summaryTokenBudgetCap,
-        DEFAULT_SETTINGS.summaryTokenBudgetCap,
     );
     bucket.independentApiConfig ||= structuredClone(DEFAULT_SETTINGS.independentApiConfig);
     bucket.apiProfiles ||= [];

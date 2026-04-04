@@ -13,8 +13,6 @@ import { refreshStatusPanel } from "./status-panel.js";
 import { enhanceAllTextareas } from "./panel.js";
 import {
     describeTokenStats,
-    formatBudgetValue,
-    formatContextValue,
     formatTokenValue,
 } from "./token-stats-ui.js";
 
@@ -39,9 +37,6 @@ export function refreshSegmentsPanel() {
         <div class="cc-card-head"><strong>${esc(t("segments.tokenStats"))}</strong></div>
         <div class="cc-token-grid">
           <div class="cc-token-item"><span>${esc(t("token.summaryText"))}</span><strong id="cc-summary-body-tokens">...</strong></div>
-          <div class="cc-token-item"><span>${esc(t("token.injectionText"))}</span><strong id="cc-summary-injection-tokens">...</strong></div>
-          <div class="cc-token-item"><span>${esc(t("token.budget"))}</span><strong id="cc-summary-budget-tokens">...</strong></div>
-          <div class="cc-token-item"><span>${esc(t("token.contextWindow"))}</span><strong id="cc-summary-context-tokens">...</strong></div>
         </div>
         <div id="cc-summary-token-note" class="cc-token-note">${esc(t("segments.tokenLoading"))}</div>
       </div>
@@ -191,7 +186,6 @@ async function renderTokenStats(root, summaryText) {
     const note = root.querySelector("#cc-summary-token-note");
     if (note) {
         note.textContent = t("segments.tokenLoading");
-        note.classList.remove("cc-token-warning");
     }
 
     const stats = await getApprovedSummaryTokenStats(summaryText);
@@ -200,14 +194,10 @@ async function renderTokenStats(root, summaryText) {
     }
 
     setText(root, "#cc-summary-body-tokens", formatTokenValue(stats.summaryTokens, t));
-    setText(root, "#cc-summary-injection-tokens", formatTokenValue(stats.injectedTokens, t));
-    setText(root, "#cc-summary-budget-tokens", formatBudgetValue(stats.budgetTokens, t));
-    setText(root, "#cc-summary-context-tokens", formatContextValue(stats.maxContext, t));
 
-    const summary = describeTokenStats(stats, t);
+    const noteText = describeTokenStats(stats, t);
     if (note) {
-        note.textContent = summary.text;
-        note.classList.toggle("cc-token-warning", summary.warning);
+        note.textContent = noteText;
     }
 }
 

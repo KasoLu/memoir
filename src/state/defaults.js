@@ -3,8 +3,6 @@ export const DEFAULT_SETTINGS = Object.freeze({
     summaryGenerationMode: "shared-api",
     summaryResponseLength: 0,
     fusionResponseLength: 0,
-    summaryTokenBudgetPercent: 25,
-    summaryTokenBudgetCap: 0,
     independentApiConfig: {
         model: "",
         apiUrl: "",

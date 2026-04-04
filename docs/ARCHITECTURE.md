@@ -73,12 +73,8 @@ When source messages are edited after a summary is confirmed, the summary is fla
 ### Provider router with fallback
 Independent API mode falls back to shared API if config is incomplete. Summary generation and fusion each have their own output-length setting. `0` means "follow SillyTavern's global response length". Shared API omits `responseLength` when set to `0`, while independent API only sends `max_tokens` when the configured value is greater than `0`.
 
-### Token budget monitoring
-Confirmed summaries can be measured with SillyTavern's token counter. Memoir tracks both raw summary text and the final wrapped injection text, then compares the wrapped result against a warning line derived from context size:
-
-- `summaryTokenBudgetPercent` = percentage of `maxContext`
-- `summaryTokenBudgetCap` = optional hard cap
-- if both are set, the smaller value wins
+### Summary length display
+Confirmed summaries can be measured with SillyTavern's token counter. Memoir now counts only the current cumulative summary text for UI display and editing feedback.
 
 ### Prompt presets save patch state
 Custom prompt presets store their associated style template and fanfic template selections, so switching presets restores the full configuration.
