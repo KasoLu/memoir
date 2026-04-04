@@ -73,6 +73,9 @@ When source messages are edited after a summary is confirmed, the summary is fla
 ### Provider router with fallback
 Independent API mode falls back to shared API if config is incomplete. Summary generation and fusion each have their own output-length setting. `0` means "follow SillyTavern's global response length". Shared API omits `responseLength` when set to `0`, while independent API only sends `max_tokens` when the configured value is greater than `0`.
 
+### Relative injection strategy
+Memoir uses SillyTavern's extension prompt layer and depth controls as a relative strategy, not an absolute insertion point. Within the same layer and depth, final ordering still follows SillyTavern's prompt assembly rules.
+
 ### Summary length display
 Confirmed summaries can be measured with SillyTavern's token counter. Memoir now counts only the current cumulative summary text for UI display and editing feedback.
 
