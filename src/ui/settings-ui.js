@@ -18,10 +18,13 @@ import {
     getAllStylePatchOptions,
     getStylePatchText,
     getFanficPatchText,
+    getContentCompatibilityPatchText,
+    normalizeContentCompatibilityPatchText,
     upsertCustomStylePatch,
     deleteCustomStylePatch,
     STYLE_PATCH_TEXT,
     FANFIC_PATCH_TEXT,
+    CONTENT_COMPATIBILITY_PATCH_TEXT,
     upsertCustomPromptProfile,
 } from "../prompts/prompt-registry.js";
 import { refreshStatusPanel } from "./status-panel.js";
@@ -131,6 +134,8 @@ function fillForm() {
     setValue("cc-style-patch-text", getStylePatchText(settings.stylePatchId, settings));
     setChecked("cc-fanfic-patch", settings.fanficPatchEnabled);
     setValue("cc-fanfic-patch-text", getFanficPatchText(settings));
+    setChecked("cc-content-compatibility-patch", settings.contentCompatibilityPatchEnabled);
+    setValue("cc-content-compatibility-patch-text", getContentCompatibilityPatchText(settings));
     setChecked("cc-auto-inject", settings.autoInjectApproved);
     setValue("cc-inject-position", settings.injectionPosition ?? 0);
     setValue("cc-inject-depth", settings.injectionDepth ?? 1);
@@ -176,6 +181,7 @@ function bindSettingsEvents() {
                 .split("\n")
                 .map((item) => item.trim())
                 .filter(Boolean),
+            contentCompatibilityPatchEnabled: isChecked("cc-content-compatibility-patch"),
         });
         refreshStatusPanel();
         if (refreshRange) {
@@ -190,6 +196,7 @@ function bindSettingsEvents() {
         "cc-provider-model",
         "cc-summary-response-length",
         "cc-fusion-response-length",
+        "cc-content-compatibility-patch",
     ]) {
         document.getElementById(id)?.addEventListener("change", () => {
             syncLiveGenerationSettings();
@@ -301,6 +308,28 @@ function bindSettingsEvents() {
         notify("info", "已恢复为内置默认正文。");
     });
 
+    document.getElementById("cc-content-compatibility-patch-save")?.addEventListener("click", () => {
+        updateSettings({
+            contentCompatibilityPatchEnabled: isChecked("cc-content-compatibility-patch"),
+            contentCompatibilityPatchText: normalizeContentCompatibilityPatchText(
+                getValue("cc-content-compatibility-patch-text"),
+            ),
+        });
+        notify("success", t("toast.contentCompatibilitySaved"));
+        refreshStatusPanel();
+    });
+
+    document.getElementById("cc-content-compatibility-patch-reset")?.addEventListener("click", () => {
+        updateSettings({
+            contentCompatibilityPatchEnabled: true,
+            contentCompatibilityPatchText: "",
+        });
+        setChecked("cc-content-compatibility-patch", true);
+        setValue("cc-content-compatibility-patch-text", CONTENT_COMPATIBILITY_PATCH_TEXT);
+        notify("info", t("toast.contentCompatibilityReset"));
+        refreshStatusPanel();
+    });
+
     document.getElementById("cc-prompt-profile")?.addEventListener("change", () => {
         const settings = getSettings();
         const nextProfileId = getValue("cc-prompt-profile");
@@ -321,6 +350,9 @@ function bindSettingsEvents() {
         }
         if (!nextProfile.builtIn && nextProfile.fanficPatchEnabled !== undefined) {
             patch.fanficPatchEnabled = nextProfile.fanficPatchEnabled;
+        }
+        if (!nextProfile.builtIn && nextProfile.contentCompatibilityPatchEnabled !== undefined) {
+            patch.contentCompatibilityPatchEnabled = nextProfile.contentCompatibilityPatchEnabled;
         }
         updateSettings(patch);
         populatePromptOptions();
@@ -417,6 +449,7 @@ function bindSettingsEvents() {
                     userTemplate: getValue("cc-prompt-user-template"),
                     stylePatchId: getValue("cc-style-patch"),
                     fanficPatchEnabled: isChecked("cc-fanfic-patch"),
+                    contentCompatibilityPatchEnabled: isChecked("cc-content-compatibility-patch"),
                 },
                 settings,
             );
@@ -444,6 +477,7 @@ function bindSettingsEvents() {
                     userTemplate: getValue("cc-prompt-user-template"),
                     stylePatchId: getValue("cc-style-patch"),
                     fanficPatchEnabled: isChecked("cc-fanfic-patch"),
+                    contentCompatibilityPatchEnabled: isChecked("cc-content-compatibility-patch"),
                 },
                 settings,
             );
@@ -487,6 +521,10 @@ function bindSettingsEvents() {
             promptProfileId: getValue("cc-prompt-profile"),
             stylePatchId: getValue("cc-style-patch"),
             fanficPatchEnabled: isChecked("cc-fanfic-patch"),
+            contentCompatibilityPatchEnabled: isChecked("cc-content-compatibility-patch"),
+            contentCompatibilityPatchText: normalizeContentCompatibilityPatchText(
+                getValue("cc-content-compatibility-patch-text"),
+            ),
             summaryResponseLength: normalizeNonNegativeInteger(getValue("cc-summary-response-length"), 0),
             fusionResponseLength: normalizeNonNegativeInteger(getValue("cc-fusion-response-length"), 0),
             autoInjectApproved: isChecked("cc-auto-inject"),

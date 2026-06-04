@@ -1,11 +1,21 @@
 import { MAIN_ARCHIVE_PROFILE } from "./assets/main-archive-profile.js";
 import { FANFIC_PATCH_TEXT } from "./assets/fanfic-patch.js";
+import {
+    CONTENT_COMPATIBILITY_PATCH_TEXT,
+    EMPTY_RESPONSE_RECOVERY_PATCH_TEXT,
+} from "./assets/content-compatibility-patch.js";
 import { STYLE_PATCHES, STYLE_PATCH_TEXT } from "./assets/style-patches.js";
 import { getSettings } from "../state/settings-store.js";
 
 const BUILT_IN_PROMPT_PROFILES = [MAIN_ARCHIVE_PROFILE];
 
-export { STYLE_PATCHES, STYLE_PATCH_TEXT, FANFIC_PATCH_TEXT };
+export {
+    STYLE_PATCHES,
+    STYLE_PATCH_TEXT,
+    FANFIC_PATCH_TEXT,
+    CONTENT_COMPATIBILITY_PATCH_TEXT,
+    EMPTY_RESPONSE_RECOVERY_PATCH_TEXT,
+};
 
 export function getBuiltInPromptProfiles() {
     return BUILT_IN_PROMPT_PROFILES.map((profile) => ({
@@ -62,6 +72,10 @@ export function upsertCustomPromptProfile(profileInput, settings = getSettings()
     const patchState = {
         stylePatchId: profileInput.stylePatchId ?? settings.stylePatchId ?? "none",
         fanficPatchEnabled: profileInput.fanficPatchEnabled ?? settings.fanficPatchEnabled ?? false,
+        contentCompatibilityPatchEnabled:
+            profileInput.contentCompatibilityPatchEnabled ??
+            settings.contentCompatibilityPatchEnabled ??
+            true,
     };
 
     const existing = settings.customPromptProfiles.find((profile) => profile.id === profileInput.id);
@@ -71,6 +85,7 @@ export function upsertCustomPromptProfile(profileInput, settings = getSettings()
         existing.userTemplate = userTemplate;
         existing.stylePatchId = patchState.stylePatchId;
         existing.fanficPatchEnabled = patchState.fanficPatchEnabled;
+        existing.contentCompatibilityPatchEnabled = patchState.contentCompatibilityPatchEnabled;
         settings.promptProfileId = existing.id;
         return existing.id;
     }
@@ -152,9 +167,18 @@ export function getFanficPatchText(settings = getSettings()) {
     return settings.fanficPatchText || FANFIC_PATCH_TEXT;
 }
 
+export function getContentCompatibilityPatchText(settings = getSettings()) {
+    return settings.contentCompatibilityPatchText || CONTENT_COMPATIBILITY_PATCH_TEXT;
+}
+
+export function normalizeContentCompatibilityPatchText(text) {
+    const value = String(text || "").trim();
+    return value === CONTENT_COMPATIBILITY_PATCH_TEXT.trim() ? "" : value;
+}
+
 /* ===== Prompt bundle ===== */
 
-export function buildPromptBundle(settings, range, chatHistoryText) {
+export function buildPromptBundle(settings, range, chatHistoryText, options = {}) {
     const selectedProfile = getPromptProfileById(settings.promptProfileId, settings);
     const systemParts = [selectedProfile.systemPrompt];
 
@@ -165,6 +189,14 @@ export function buildPromptBundle(settings, range, chatHistoryText) {
     const stylePatch = getStylePatchText(settings.stylePatchId, settings);
     if (stylePatch) {
         systemParts.push(stylePatch);
+    }
+
+    if (settings.contentCompatibilityPatchEnabled || options.forceContentCompatibilityPatch) {
+        systemParts.push(getContentCompatibilityPatchText(settings));
+    }
+
+    if (options.emptyResponseRecovery) {
+        systemParts.push(EMPTY_RESPONSE_RECOVERY_PATCH_TEXT);
     }
 
     const userPrompt = selectedProfile.userTemplate

@@ -26,7 +26,6 @@ export function buildAndMountPanel() {
     document.body.appendChild(btn); positionTrigger(btn, { force: true }); makeDraggable(btn, () => openPanel());
     const ov = document.createElement("div"); ov.id = ID.overlay; ov.className = "cc-overlay"; ov.style.display = "none";
     ov.innerHTML = modalHtml(); document.body.appendChild(ov);
-    ov.addEventListener("click", (e) => { if (e.target === ov) closePanel(); });
     const reposition = () => positionTrigger(btn);
     globalThis.addEventListener?.("resize", reposition);
     globalThis.addEventListener?.("orientationchange", reposition);
@@ -35,7 +34,7 @@ export function buildAndMountPanel() {
 }
 export function openPanel()  { const o=document.getElementById(ID.overlay); if(o) o.style.display="flex"; }
 export function closePanel() { const o=document.getElementById(ID.overlay); if(o) o.style.display="none"; }
-export function togglePanel(){ document.getElementById(ID.overlay)?.style.display==="flex"?closePanel():openPanel(); }
+export function togglePanel(){ openPanel(); }
 export function setTriggerVisible(v){ triggerVisible=v; const e=document.getElementById(ID.trigger); if(e) e.style.display=v?"flex":"none"; }
 
 /* ===== Theme ===== */
@@ -189,6 +188,20 @@ function settingsPage(){
         </div>
     </div>
     <div class="cc-card cc-collapsible cc-collapsed">
+        <div class="cc-card-head cc-collapse-toggle"><strong>${t("settings.contentCompatibilityPatch")}</strong><i class="fa-solid fa-chevron-down cc-collapse-icon"></i></div>
+        <div class="cc-collapse-body">
+        <div class="cc-inject-row">
+            <label class="cc-field-row"><input id="cc-content-compatibility-patch" type="checkbox"><span>${t("settings.contentCompatibilityEnable")}</span></label>
+            <div class="cc-hint" style="margin:0;padding-left:26px">${t("settings.contentCompatibilityHint")}</div>
+        </div>
+        <label class="cc-field" style="margin-top:10px"><span>${t("settings.contentCompatibilityText")}</span><textarea id="cc-content-compatibility-patch-text" class="cc-textarea" rows="10"></textarea></label>
+        <div class="cc-actions">
+            <button id="cc-content-compatibility-patch-save" class="cc-btn">${t("settings.contentCompatibilitySave")}</button>
+            <button id="cc-content-compatibility-patch-reset" class="cc-btn">${t("settings.contentCompatibilityReset")}</button>
+        </div>
+        </div>
+    </div>
+    <div class="cc-card cc-collapsible cc-collapsed">
         <div class="cc-card-head cc-collapse-toggle"><strong>${t("settings.fusionSystem")}</strong><i class="fa-solid fa-chevron-down cc-collapse-icon"></i></div>
         <div class="cc-collapse-body">
         <div class="cc-hint">${t("settings.fusionHint")}</div>
@@ -338,6 +351,7 @@ function enhanceAllTextareas() {
         "cc-prompt-user-template",
         "cc-style-patch-text",
         "cc-fanfic-patch-text",
+        "cc-content-compatibility-patch-text",
         "cc-fusion-system",
         "cc-fusion-user-template",
     ];
@@ -418,20 +432,18 @@ function injectStyles(){if(document.getElementById(ID.style))return;const s=docu
 
 const CSS = `
 /* Trigger */
-.cc-trigger{position:fixed;right:18px;bottom:84px;z-index:9000;width:44px;height:44px;border-radius:999px;border:1px solid var(--SmartThemeBorderColor,#435366);background:color-mix(in srgb,var(--SmartThemeBlurTintColor,#182028) 88%,transparent);color:var(--SmartThemeFontColor,#eef3f7);cursor:grab;box-shadow:0 6px 20px rgba(0,0,0,.35);touch-action:none;user-select:none;display:flex;align-items:center;justify-content:center;transition:box-shadow .2s}
+.cc-trigger{position:fixed;right:18px;bottom:84px;z-index:9000;width:44px;height:44px;border-radius:999px;border:1px solid #435366;background:#182028;color:#eef3f7;cursor:grab;box-shadow:0 6px 20px rgba(0,0,0,.35);touch-action:none;user-select:none;display:flex;align-items:center;justify-content:center;transition:box-shadow .2s}
 .cc-trigger:hover{box-shadow:0 8px 28px rgba(0,0,0,.45)}.cc-trigger:active{cursor:grabbing}
 .cc-trigger-core{width:100%;height:100%;display:inline-flex;align-items:center;justify-content:center;border-radius:inherit;font-size:15px}
 
 /* Overlay */
 .cc-overlay{position:fixed;inset:0;z-index:9001;display:none;align-items:center;justify-content:center;padding:14px;background:rgba(0,0,0,.45);backdrop-filter:blur(6px)}
 
-/* Modal — default vars from ST, overridden by theme inline styles */
+/* Modal — plugin-owned default vars, overridden by theme inline styles */
 .cc-modal{
-    --cc-bg:var(--SmartThemeBlurTintColor,#182028);--cc-surface:color-mix(in srgb,var(--SmartThemeBlurTintColor,#232d39) 100%,white 4%);
-    --cc-field:color-mix(in srgb,var(--SmartThemeBlurTintColor,#121920) 100%,black 8%);
-    --cc-border:var(--SmartThemeBorderColor,#435366);--cc-text:var(--SmartThemeFontColor,#eef3f7);
-    --cc-dim:color-mix(in srgb,var(--SmartThemeFontColor,#eef3f7) 55%,transparent);
-    --cc-accent:var(--SmartThemeQuoteColor,#e4b35d);--cc-accent-soft:color-mix(in srgb,var(--SmartThemeQuoteColor,#e4b35d) 16%,transparent);
+    --cc-bg:#182028;--cc-surface:#232d39;--cc-field:#121920;
+    --cc-border:#435366;--cc-text:#eef3f7;--cc-dim:#9eb0c3;
+    --cc-accent:#e4b35d;--cc-accent-soft:rgba(228,179,93,.16);
     width:min(700px,calc(100vw - 28px));max-height:min(84vh,880px);display:flex;flex-direction:column;overflow:hidden;position:relative;
     border:1px solid var(--cc-border);border-radius:18px;background:linear-gradient(180deg,var(--cc-surface) 0%,var(--cc-bg) 100%);
     color:var(--cc-text);box-shadow:0 20px 56px rgba(0,0,0,.5);font-family:inherit}
@@ -480,6 +492,10 @@ const CSS = `
 /* ===== Inputs — use theme vars, !important to override ST globals ===== */
 .cc-modal .cc-input{border:1px solid color-mix(in srgb,var(--cc-border) 50%,transparent)!important;border-radius:12px!important;background:var(--cc-field)!important;color:var(--cc-text)!important;padding:9px 11px!important;min-height:38px;font-size:13px!important;font-family:inherit!important;width:100%;box-sizing:border-box}
 .cc-modal .cc-textarea{border:1px solid color-mix(in srgb,var(--cc-border) 50%,transparent)!important;border-radius:12px!important;background:var(--cc-field)!important;color:var(--cc-text)!important;padding:10px 12px!important;min-height:90px;resize:vertical;font-family:"SFMono-Regular","Menlo","Consolas",monospace!important;font-size:.85em!important;line-height:1.55;width:100%;box-sizing:border-box}
+.cc-modal .cc-input::placeholder,.cc-modal .cc-textarea::placeholder{color:var(--cc-dim)!important;opacity:.82!important}
+.cc-modal .cc-input:focus,.cc-modal .cc-textarea:focus{outline:none!important;border-color:color-mix(in srgb,var(--cc-accent) 70%,var(--cc-border))!important;box-shadow:0 0 0 2px var(--cc-accent-soft)!important}
+.cc-modal .cc-input:disabled,.cc-modal .cc-input[readonly],.cc-modal .cc-textarea:disabled,.cc-modal .cc-textarea[readonly]{opacity:.72!important;cursor:not-allowed!important}
+.cc-modal select.cc-input option{background:var(--cc-field)!important;color:var(--cc-text)!important}
 .cc-modal input[type="checkbox"]{width:17px;height:17px;cursor:pointer;flex-shrink:0}
 
 /* Buttons — force horizontal text */
@@ -535,7 +551,10 @@ const CSS = `
 .cc-status-floors{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .cc-status-floor-item{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:6px 10px;border:1px solid color-mix(in srgb,var(--cc-border) 30%,transparent);border-radius:10px;background:color-mix(in srgb,var(--cc-field) 40%,transparent);font-size:.84em}
 .cc-status-floor-item span{color:var(--cc-dim);white-space:nowrap}
-.cc-status-floor-item code{font-family:inherit;font-weight:600;color:var(--cc-text);word-break:break-all}
+.cc-status-floor-value{font-family:inherit;font-weight:700;word-break:break-all;text-align:right}
+.cc-status-floor-empty{color:color-mix(in srgb,var(--cc-dim) 70%,transparent);font-weight:600}
+.cc-status-floor-range{color:var(--cc-text);padding:1px 7px;border:1px solid color-mix(in srgb,var(--cc-border) 42%,transparent);border-radius:999px;background:color-mix(in srgb,var(--cc-surface) 38%,transparent)}
+.cc-status-floor-danger{color:var(--cc-accent);border-color:color-mix(in srgb,var(--cc-accent) 58%,var(--cc-border));background:var(--cc-accent-soft)}
 
 /* Theme grid */
 .cc-theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}

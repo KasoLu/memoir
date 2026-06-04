@@ -57,14 +57,25 @@ export function refreshStatusPanel() {
           <div class="cc-status-row"><span>${t("status.independentReady")}</span><strong class="${ready ? "cc-status-on" : ""}">${ready ? t("status.yes") : t("status.no")}</strong></div>
           <div class="cc-status-row"><span>${t("status.promptProfile")}</span><strong>${esc(settings.promptProfileId)}</strong></div>
           <div class="cc-status-row"><span>${t("status.stylePatch")}</span><strong>${esc(settings.stylePatchId)}</strong></div>
+          <div class="cc-status-row"><span>${t("status.contentCompatibilityPatch")}</span><strong class="${settings.contentCompatibilityPatchEnabled ? "cc-status-on" : ""}">${settings.contentCompatibilityPatchEnabled ? t("status.on") : t("status.off")}</strong></div>
         </div>
       </div>
       <div class="cc-status-floors">
-        <div class="cc-status-floor-item"><span>${t("status.summarizedFloors")}</span><code>${esc(summarized)}</code></div>
-        <div class="cc-status-floor-item"><span>${t("status.hiddenFloors")}</span><code>${esc(hidden)}</code></div>
-        <div class="cc-status-floor-item"><span>${t("status.pendingFloors")}</span><code>${esc(pending)}</code></div>
-        <div class="cc-status-floor-item"><span>${t("status.changedFloors")}</span><code>${esc(changedFloors)}</code></div>
+        ${floorStatusItem(t("status.summarizedFloors"), summarized)}
+        ${floorStatusItem(t("status.hiddenFloors"), hidden)}
+        ${floorStatusItem(t("status.pendingFloors"), pending)}
+        ${floorStatusItem(t("status.changedFloors"), changedFloors, { danger: changedFloors !== "(none)" })}
       </div>`;
+}
+
+function floorStatusItem(label, value, { danger = false } = {}) {
+    const empty = value === "(none)";
+    const valueClass = [
+        "cc-status-floor-value",
+        empty ? "cc-status-floor-empty" : "cc-status-floor-range",
+        danger ? "cc-status-floor-danger" : "",
+    ].filter(Boolean).join(" ");
+    return `<div class="cc-status-floor-item"><span>${esc(label)}</span><span class="${valueClass}">${esc(value)}</span></div>`;
 }
 
 function esc(s) {

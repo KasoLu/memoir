@@ -77,14 +77,34 @@ Steps:
 1. Confirm multiple summary ranges.
 2. Run `Merge & Compress`.
 3. Review the merged result.
+4. If possible, test with a provider or prompt case that can return empty content.
 
 Expected:
 
 - The merged result combines prior approved content.
 - Approved ranges and cumulative summary remain coherent after merge.
 - No source chat messages are deleted by the extension.
+- Empty or filter-like provider output triggers a visible retry/fallback notice.
+- If the provider still returns no usable text, Memoir preserves the selected original summaries as editable manual-revision text.
 
-## 6. Prompt Presets And Custom Templates
+## 6. Mature Content Archive Compatibility
+
+Steps:
+
+1. Open Settings.
+2. Verify the mature-content archive compatibility patch is visible and enabled by default.
+3. Edit the patch text, save settings, reload, and confirm the edited text persists.
+4. Use the reset control and confirm the default patch is restored.
+5. Disable the patch, generate a normal summary, then trigger or simulate an empty-response recovery path if possible.
+
+Expected:
+
+- The compatibility patch can be edited, saved, reset, and disabled.
+- Disabling the patch affects the first normal request.
+- Empty-response recovery can still temporarily force compatibility instructions for the retry path.
+- Generated drafts and retry notices remain user-visible and editable.
+
+## 7. Prompt Presets And Custom Templates
 
 Steps:
 
@@ -97,9 +117,10 @@ Expected:
 
 - Preset switching restores the associated prompt configuration.
 - Custom prompt profiles persist across reload.
+- Custom prompt profiles preserve their mature-content compatibility setting.
 - The user template still works when `{{start_floor}}`, `{{end_floor}}`, and `{{chat_history}}` are preserved.
 
-## 7. Language And Copy Review
+## 8. Language And Copy Review
 
 Steps:
 
@@ -112,14 +133,18 @@ Expected:
 - Both locales render without missing i18n keys.
 - Injection wording matches the agreed "relative injection strategy" terminology.
 - Removed budget-style wording does not appear in token or length UI.
+- Summary/fusion retry and fallback notices are understandable in both locales.
 
-## 8. Responsive UI
+## 9. Responsive UI
 
 Steps:
 
 1. Open the panel on desktop width.
 2. Repeat on a narrow/mobile width.
 3. Open fullscreen editors for long text fields.
+4. Click outside the panel while a draft or edited text exists.
+5. Click the floating launcher again while the panel is open.
+6. Close the panel with the close button.
 
 Expected:
 
@@ -127,11 +152,31 @@ Expected:
 - Fullscreen editors open correctly.
 - Long summary text remains editable and searchable in fullscreen.
 - On mobile, the floating trigger starts in a stable visible position near the top bar instead of drifting too low or off-screen.
+- Backdrop clicks do not close the panel.
+- A second launcher click does not close the panel.
+- The close button still closes the panel.
+
+## 10. Panel Theme Readability
+
+Steps:
+
+1. Switch through at least one dark Memoir panel theme and one light Memoir panel theme.
+2. Check text inputs, textareas, selects, placeholders, focused fields, disabled fields, and select options.
+3. Check Summary tab status floor display, including `(none)` and changed ranges.
+
+Expected:
+
+- Form controls remain readable in both dark and light panel themes.
+- Memoir panel styling does not depend on SillyTavern native theme variables.
+- `(none)` uses subdued text, normal ranges use badges, and changed ranges are visually distinct.
 
 ## Release Gate
 
 Before tagging a release:
 
-- `manifest.json` version matches the release version.
+- `manifest.json` version is `1.1.0`.
 - `README.md` and `README_EN.md` point to the correct repository URL.
 - `CHANGELOG.md` contains the release entry and date.
+- JavaScript syntax check passes.
+- Chinese and English i18n key sets match.
+- CSS checks show no Memoir panel dependency on SillyTavern native theme variables.

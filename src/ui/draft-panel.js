@@ -8,6 +8,7 @@ import { refreshStatusPanel } from "./status-panel.js";
 import { refreshSegmentsPanel } from "./segments-panel.js";
 import { getSettings, updateIndependentApiConfig, updateSettings } from "../state/settings-store.js";
 import { getSuggestedDraftRange } from "../services/range-suggestion-service.js";
+import { normalizeContentCompatibilityPatchText } from "../prompts/prompt-registry.js";
 
 let currentDraftId = null;
 
@@ -104,6 +105,10 @@ function syncGenerationSettingsFromForm() {
         promptProfileId: getInputValue("cc-prompt-profile") || settings.promptProfileId,
         stylePatchId: getInputValue("cc-style-patch") || settings.stylePatchId,
         fanficPatchEnabled: isInputChecked("cc-fanfic-patch"),
+        contentCompatibilityPatchEnabled: isInputChecked("cc-content-compatibility-patch"),
+        contentCompatibilityPatchText: normalizeContentCompatibilityPatchText(
+            getInputValue("cc-content-compatibility-patch-text"),
+        ),
         summaryResponseLength: normalizeNonNegativeInteger(
             getInputValue("cc-summary-response-length"),
             settings.summaryResponseLength || 0,
@@ -160,6 +165,8 @@ function renderDraftPreview(draft) {
         `${t("draft.requestedMode")}：${draft.providerInfo.requestedMode}`,
         `${t("draft.resolvedMode")}：${draft.providerInfo.resolvedMode}${draft.providerInfo.model ? ` / ${draft.providerInfo.model}` : ""}`,
         draft.providerInfo.fallbackUsed ? `${t("draft.fallbackNote")}：${draft.providerInfo.fallbackReason}` : "",
+        draft.providerInfo.emptyRetryUsed ? `${t("draft.emptyRetry")}：${draft.providerInfo.emptyRetryReason || t("draft.emptyRetryUsed")}` : "",
+        draft.providerInfo.localFallbackUsed ? `${t("draft.localFallback")}：${draft.providerInfo.localFallbackReason || ""}` : "",
         "",
         `【${t("draft.archiveBody")}】`,
         draft.response.archiveSummary || t("draft.empty"),

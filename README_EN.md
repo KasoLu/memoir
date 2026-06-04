@@ -27,13 +27,15 @@ AI "remembers" past plot on its next reply
 ## Features
 
 - **Manual segment summarization** — You choose the range, you confirm. No automatic chat deletion.
-- **Summary presets + style/fanfic templates** — Built-in story archive preset with stackable style templates and fanfic AU compatibility. All template text is fully viewable and editable, and you can swap in your own preferred summary template.
-- **Merge & Compress** — Too many summaries piling up? One-click fusion to deduplicate and consolidate.
+- **Summary presets + style/fanfic/mature-content compatibility templates** — Built-in story archive preset with stackable style templates, fanfic AU compatibility, and a mature-content archive compatibility patch. All template text is fully viewable and editable, and you can swap in your own preferred summary template.
+- **Empty-response recovery** — Summary generation and Merge & Compress automatically retry when the provider returns an empty response. If no usable result is returned, Memoir keeps editable fallback text instead of interrupting the workflow.
+- **Merge & Compress** — Too many summaries piling up? One-click fusion to deduplicate and consolidate. If the provider keeps returning empty output, Memoir preserves the selected source summaries as manual-revision text.
 - **Relative injection strategy** — Choose a prompt layer (top / character / chat injection), layer depth, role, and custom wrapper tags. Chat-layer injection follows SillyTavern ordering within that layer and is not guaranteed to sit absolutely next to the latest message.
 - **Shared / Independent API** — Use SillyTavern's configured API or set up a dedicated summarization API.
 - **Fetch Models** — One-click model list retrieval for independent API.
 - **Fullscreen editing** — Long prompts and summary text support fullscreen editing; summary fullscreen includes search.
-- **Theme switching** — 7 built-in panel themes, launcher color follows theme.
+- **Theme switching** — 7 built-in panel themes, launcher color follows theme. Panel colors are isolated from SillyTavern's native theme variables for readable light and dark Memoir themes.
+- **Safe panel closing** — Backdrop clicks and second launcher clicks no longer close the panel, preventing accidental content loss during summarization or editing.
 - **Mobile responsive** — Panel, fullscreen, and search bar all adapt to small screens, and the launcher avoids awkward first-load placement on mobile.
 - **Bilingual i18n** — Chinese / English, auto-detected.
 
@@ -64,11 +66,12 @@ Refresh SillyTavern to start using.
 2. **Workspace**: Set floor range → Generate Summary → Preview → Confirm
    Here, "floor" simply means chat message order: the first message is 1, the second is 2.
 3. **Summaries**: View status, adjust injection strategy, edit/merge confirmed summaries
-4. **Settings**: Choose theme, configure API, select/edit summary presets and templates
+4. **Settings**: Choose theme, configure API, select/edit summary presets, templates, and the mature-content archive compatibility patch
 
 ### Prompt Customization
 
 - You can paste in your own preferred summary prompt template.
+- The `Mature Content Archive Compatibility Patch` is enabled by default, and can be edited, reset, or disabled.
 - The `System Prompt` has no required variables.
 - In the `Summary User Template`, keep `{{start_floor}}`, `{{end_floor}}`, and `{{chat_history}}`. Everything else can be changed.
 
