@@ -36,6 +36,9 @@ Memoir (古法 Memoir) — a third-party extension for SillyTavern that provides
 - **CSS is injected via JS** in `src/ui/panel.js`, not in `style.css`
 - **Use `cc-` prefix** for all CSS classes to avoid conflicts with SillyTavern
 - **Theme support:** All colors use `--cc-*` CSS variables, overridden by theme presets
+- **No SmartTheme dependency in panel CSS:** Do not rely on SillyTavern native theme variables inside the Memoir panel
+- **Readable form controls:** Input, textarea, select, placeholder, focus, disabled, and option states must use scoped panel variables
+- **Safe closing:** Backdrop clicks must not close the modal when draft or edited text may be present
 - **Collapsible cards** for settings sections (`.cc-collapsible` / `.cc-collapsed`)
 - **Fullscreen editor** for long-text textareas, with search for summary text
 - **Mobile responsive:** `@media (max-width: 720px)` rules, safe-area padding

@@ -6,6 +6,12 @@ import {
     saveCumulativeSummary,
 } from "../state/chat-segment-store.js";
 import { runSummaryProvider } from "./provider-router.js";
+import {
+    EMPTY_RESPONSE_RECOVERY_PATCH_TEXT,
+    getContentCompatibilityPatchText,
+} from "../prompts/prompt-registry.js";
+
+const RECOVERY_MIN_RESPONSE_LENGTH = 800;
 
 export async function runFusionCompression({ startIndex = null, endIndex = null } = {}) {
     const current = getCumulativeSummary().trim();
@@ -30,22 +36,65 @@ export async function runFusionCompression({ startIndex = null, endIndex = null 
     const after = blocks.slice(end);
 
     const settings = getSettings();
-    const systemPrompt = settings.fusionSystemPrompt || DEFAULT_SETTINGS.fusionSystemPrompt;
+    const baseSystemPrompt = settings.fusionSystemPrompt || DEFAULT_SETTINGS.fusionSystemPrompt;
     const userPrompt = (settings.fusionUserTemplate || DEFAULT_SETTINGS.fusionUserTemplate).replaceAll(
         "{{selected_blocks}}",
         targetBlocks.map((block) => block.fullText).join("\n\n"),
     );
+    let emptyRetryUsed = false;
+    let localFallbackUsed = false;
+    let fallbackReason = "";
 
-    const providerRequest = {
-        promptBundle: { systemPrompt, userPrompt },
-        maxTokens: Number(settings.fusionResponseLength) > 0 ? Number(settings.fusionResponseLength) : 0,
-    };
+    let providerRequest = buildFusionProviderRequest({
+        settings,
+        systemPrompt: buildFusionSystemPrompt(settings, baseSystemPrompt),
+        userPrompt,
+        maxTokens: getFusionMaxTokens(settings),
+    });
+    let response;
 
-    const response = await runSummaryProvider(providerRequest, settings);
-    const finalBody = String(response.archiveSummary || "").trim();
+    try {
+        response = await runSummaryProvider(providerRequest, settings);
+    } catch (error) {
+        if (!shouldRetryFusionFailure(error)) {
+            throw error;
+        }
+        fallbackReason = error.message || "Provider failed before returning fusion content.";
+    }
 
+    if (!hasUsableFusion(response)) {
+        fallbackReason ||= "Provider returned empty fusion content.";
+    }
+
+    if (fallbackReason && settings.summaryEmptyRetryEnabled !== false) {
+        emptyRetryUsed = true;
+        providerRequest = buildFusionProviderRequest({
+            settings,
+            systemPrompt: buildFusionSystemPrompt(settings, baseSystemPrompt, {
+                forceContentCompatibilityPatch: true,
+                emptyResponseRecovery: true,
+            }),
+            userPrompt,
+            maxTokens: getRecoveryMaxTokens(settings),
+        });
+
+        try {
+            response = await runSummaryProvider(providerRequest, settings);
+        } catch (error) {
+            if (!shouldRetryFusionFailure(error)) {
+                throw error;
+            }
+            fallbackReason = error.message || "Reinforced fusion retry failed before returning content.";
+        }
+    }
+
+    let finalBody = String(response?.archiveSummary || "").trim();
     if (!finalBody) {
-        throw new Error("融合压缩返回为空。");
+        localFallbackUsed = true;
+        fallbackReason ||= emptyRetryUsed
+            ? "Reinforced fusion retry still returned empty content."
+            : "Provider returned empty fusion content.";
+        finalBody = buildLocalFusionFallbackBody(targetBlocks, fallbackReason);
     }
 
     const mergedRange = {
@@ -79,7 +128,73 @@ export async function runFusionCompression({ startIndex = null, endIndex = null 
 
     saveCumulativeSummary(finalText);
     overwriteApprovedRanges(rebuiltRanges, { updateBaseline: false });
-    return finalText;
+    return {
+        finalText,
+        emptyRetryUsed,
+        localFallbackUsed,
+        fallbackReason,
+    };
+}
+
+function buildFusionProviderRequest({ systemPrompt, userPrompt, maxTokens }) {
+    return {
+        promptBundle: { systemPrompt, userPrompt },
+        maxTokens,
+    };
+}
+
+function buildFusionSystemPrompt(settings, baseSystemPrompt, options = {}) {
+    const systemParts = [baseSystemPrompt];
+
+    if (settings.contentCompatibilityPatchEnabled || options.forceContentCompatibilityPatch) {
+        systemParts.push(getContentCompatibilityPatchText(settings));
+    }
+
+    if (options.emptyResponseRecovery) {
+        systemParts.push(EMPTY_RESPONSE_RECOVERY_PATCH_TEXT);
+    }
+
+    return systemParts.join("\n\n");
+}
+
+function getFusionMaxTokens(settings) {
+    return Number(settings.fusionResponseLength) > 0 ? Number(settings.fusionResponseLength) : 0;
+}
+
+function getRecoveryMaxTokens(settings) {
+    const configured = getFusionMaxTokens(settings);
+    if (configured <= 0) {
+        return 0;
+    }
+    return Math.max(configured, RECOVERY_MIN_RESPONSE_LENGTH);
+}
+
+function hasUsableFusion(response) {
+    return !!String(response?.archiveSummary || "").trim();
+}
+
+function shouldRetryFusionFailure(error) {
+    const text = String(error?.message || error || "").toLowerCase();
+    return /empty|content[_ -]?filter|filtered|moderation|safety|policy|blocked|refus/.test(text);
+}
+
+function buildLocalFusionFallbackBody(targetBlocks, reason) {
+    const sourceText = targetBlocks
+        .map((block) => block.fullText)
+        .join("\n\n")
+        .trim()
+        .split("\n")
+        .map((line) => (line.match(/^【(?:第\d+次总结|融合总结)】/) ? `原${line}` : line))
+        .join("\n");
+    return [
+        "【融合压缩待人工修订】",
+        "API 融合压缩返回为空或被过滤。Memoir 已保留原选中总结正文，避免融合流程丢失内容。",
+        `原因：${reason}`,
+        "",
+        "请人工压缩以下原总结内容后再保存：",
+        "",
+        sourceText,
+    ].join("\n").trim();
 }
 
 function splitSummaryBlocks(text) {

@@ -4,6 +4,8 @@ import { buildPromptBundle } from "../prompts/prompt-registry.js";
 import { runSummaryProvider } from "./provider-router.js";
 import { hashMessageRange } from "./segment-hash-service.js";
 
+const RECOVERY_MIN_RESPONSE_LENGTH = 600;
+
 export async function generateDraftForRange({ startMes, endMes }) {
     const settings = getSettings();
     const messages = getChatRange(startMes, endMes);
@@ -24,10 +26,11 @@ export async function generateDraftForRange({ startMes, endMes }) {
         })
         .join("\n\n");
 
-    const promptBundle = buildPromptBundle(settings, { startFloor, endFloor }, chatHistoryText);
+    const range = { startFloor, endFloor };
+    const promptBundle = buildPromptBundle(settings, range, chatHistoryText);
     const sourceHash = await hashMessageRange(messages);
 
-    const providerRequest = {
+    let providerRequest = buildProviderRequest({
         startMes,
         endMes,
         startFloor,
@@ -35,10 +38,77 @@ export async function generateDraftForRange({ startMes, endMes }) {
         messages,
         sourceHash,
         promptBundle,
-        maxTokens: Number(settings.summaryResponseLength) > 0 ? Number(settings.summaryResponseLength) : 0,
-    };
+        maxTokens: getSummaryMaxTokens(settings),
+    });
+    let response;
+    let emptyRetryUsed = false;
+    let emptyRetryReason = "";
+    let localFallbackUsed = false;
+    let localFallbackReason = "";
 
-    const response = await runSummaryProvider(providerRequest, settings);
+    try {
+        response = await runSummaryProvider(providerRequest, settings);
+    } catch (error) {
+        if (!shouldRetrySummaryFailure(error)) {
+            throw error;
+        }
+        emptyRetryReason = error.message || "Provider failed before returning summary content.";
+    }
+
+    if (!hasUsableSummary(response)) {
+        emptyRetryReason ||= "Provider returned empty summary content.";
+    }
+
+    if (emptyRetryReason && settings.summaryEmptyRetryEnabled !== false) {
+        const recoveryPromptBundle = buildPromptBundle(settings, range, chatHistoryText, {
+            forceContentCompatibilityPatch: true,
+            emptyResponseRecovery: true,
+        });
+        providerRequest = buildProviderRequest({
+            startMes,
+            endMes,
+            startFloor,
+            endFloor,
+            messages,
+            sourceHash,
+            promptBundle: recoveryPromptBundle,
+            maxTokens: getRecoveryMaxTokens(settings),
+        });
+        emptyRetryUsed = true;
+
+        try {
+            response = await runSummaryProvider(providerRequest, settings);
+        } catch (error) {
+            if (!shouldRetrySummaryFailure(error)) {
+                throw error;
+            }
+            localFallbackReason = error.message || "Reinforced retry failed before returning summary content.";
+        }
+    }
+
+    if (!hasUsableSummary(response)) {
+        localFallbackReason ||= emptyRetryUsed
+            ? "Reinforced retry still returned empty summary content."
+            : emptyRetryReason || "Provider returned empty summary content.";
+        response = buildLocalFallbackResponse({
+            startFloor,
+            endFloor,
+            messages,
+            reason: localFallbackReason,
+        });
+        localFallbackUsed = true;
+    }
+
+    const archiveSummary = String(response.archiveSummary || "").trim();
+    response = {
+        ...response,
+        archiveSummary,
+        injectSummary: String(response.injectSummary || archiveSummary).trim(),
+        emptyRetryUsed,
+        emptyRetryReason,
+        localFallbackUsed,
+        localFallbackReason,
+    };
     const resolvedMode = response.providerResolved || settings.summaryGenerationMode;
     const resolvedModel =
         resolvedMode === "independent-api"
@@ -55,14 +125,99 @@ export async function generateDraftForRange({ startMes, endMes }) {
         promptProfileId: settings.promptProfileId,
         stylePatchId: settings.stylePatchId,
         fanficPatchEnabled: settings.fanficPatchEnabled,
+        contentCompatibilityPatchEnabled: settings.contentCompatibilityPatchEnabled,
         providerInfo: {
             requestedMode: settings.summaryGenerationMode,
             resolvedMode,
             fallbackUsed: !!response.providerFallbackUsed,
             fallbackReason: response.providerFallbackReason || "",
+            emptyRetryUsed,
+            emptyRetryReason,
+            localFallbackUsed,
+            localFallbackReason,
             model: resolvedModel,
         },
         createdAt: Date.now(),
+    };
+}
+
+function buildProviderRequest({
+    startMes,
+    endMes,
+    startFloor,
+    endFloor,
+    messages,
+    sourceHash,
+    promptBundle,
+    maxTokens,
+}) {
+    return {
+        startMes,
+        endMes,
+        startFloor,
+        endFloor,
+        messages,
+        sourceHash,
+        promptBundle,
+        maxTokens,
+    };
+}
+
+function getSummaryMaxTokens(settings) {
+    return Number(settings.summaryResponseLength) > 0 ? Number(settings.summaryResponseLength) : 0;
+}
+
+function getRecoveryMaxTokens(settings) {
+    const configured = getSummaryMaxTokens(settings);
+    if (configured <= 0) {
+        return 0;
+    }
+    return Math.max(configured, RECOVERY_MIN_RESPONSE_LENGTH);
+}
+
+function hasUsableSummary(response) {
+    return !!String(response?.archiveSummary || "").trim();
+}
+
+function shouldRetrySummaryFailure(error) {
+    const text = String(error?.message || error || "").toLowerCase();
+    return /empty|content[_ -]?filter|filtered|moderation|safety|policy|blocked|refus/.test(text);
+}
+
+function buildLocalFallbackResponse({ startFloor, endFloor, messages, reason }) {
+    const participants = [...new Set(
+        messages
+            .map((message) => String(message?.name || "").trim())
+            .filter(Boolean),
+    )].slice(0, 12);
+    const participantText = participants.length ? participants.join("、") : "未识别";
+    const archiveSummary = [
+        "【主线剧情】",
+        `第${startFloor}-${endFloor}楼的 API 总结返回为空，Memoir 已生成非空待修订草稿，避免本段总结流程中断。该区间涉及发言者：${participantText}。确认采用前，请人工补写本段真实剧情事实、关键对话、事件结果与后续影响。`,
+        "",
+        "【支线剧情】",
+        "待人工确认。",
+        "",
+        "【状态变更】",
+        "人物身份变化：待人工确认。",
+        "人物关系变化：待人工确认。",
+        "伤病/生理状态变化：待人工确认。",
+        "位置变化：待人工确认。",
+        "关键物品/资产/证据变化：待人工确认。",
+        "承诺/交易/条件变化：待人工确认。",
+        "",
+        "【未解决事项】",
+        `第${startFloor}-${endFloor}楼需要人工补全。原因：${reason}`,
+    ].join("\n");
+
+    return {
+        rawText: archiveSummary,
+        parseError: "API 返回空文本或内容过滤结果；已使用本地非空草稿兜底，确认前请人工修订。",
+        parsed: null,
+        archiveSummary,
+        injectSummary: archiveSummary,
+        providerModel: "",
+        providerResolved: "local-fallback",
     };
 }
 

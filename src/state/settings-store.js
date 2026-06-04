@@ -189,6 +189,14 @@ function migrateLegacySettings(bucket) {
     }));
     bucket.currentApiProfileId ||= "";
     bucket.customPromptProfiles ||= [];
+    bucket.contentCompatibilityPatchEnabled =
+        bucket.contentCompatibilityPatchEnabled ?? DEFAULT_SETTINGS.contentCompatibilityPatchEnabled;
+    bucket.contentCompatibilityPatchText =
+        typeof bucket.contentCompatibilityPatchText === "string"
+            ? bucket.contentCompatibilityPatchText
+            : DEFAULT_SETTINGS.contentCompatibilityPatchText;
+    bucket.summaryEmptyRetryEnabled =
+        bucket.summaryEmptyRetryEnabled ?? DEFAULT_SETTINGS.summaryEmptyRetryEnabled;
 }
 
 function normalizeApiProfileMode(profile) {

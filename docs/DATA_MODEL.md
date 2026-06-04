@@ -22,6 +22,9 @@ Current shape:
   "promptProfileId": "main-archive",
   "stylePatchId": "none",
   "fanficPatchEnabled": false,
+  "contentCompatibilityPatchEnabled": true,
+  "contentCompatibilityPatchText": "",
+  "summaryEmptyRetryEnabled": true,
   "summaryResponseLength": 0,
   "fusionResponseLength": 0,
   "autoInjectApproved": true,
@@ -108,11 +111,16 @@ Drafts are provider outputs that have not been approved yet.
   "promptProfileId": "main-archive",
   "stylePatchId": "none",
   "fanficPatchEnabled": false,
+  "contentCompatibilityPatchEnabled": true,
   "providerInfo": {
     "requestedMode": "shared-api",
     "resolvedMode": "shared-api",
     "fallbackUsed": false,
     "fallbackReason": "",
+    "emptyRetryUsed": false,
+    "emptyRetryReason": "",
+    "localFallbackUsed": false,
+    "localFallbackReason": "",
     "model": ""
   },
   "createdAt": 0
@@ -132,7 +140,10 @@ Stored inside:
   "id": "custom-prompt-...",
   "label": "My Prompt",
   "systemPrompt": "...",
-  "userTemplate": "..."
+  "userTemplate": "...",
+  "stylePatchId": "none",
+  "fanficPatchEnabled": false,
+  "contentCompatibilityPatchEnabled": true
 }
 ```
 

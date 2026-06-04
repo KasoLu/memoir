@@ -89,6 +89,13 @@ Check these points:
 
 If needed, edit the merged result manually before continuing.
 
+If merge returns empty content:
+
+- Memoir retries once with reinforced recovery prompts.
+- If the retry still returns empty content, Memoir preserves the selected original summaries as a manual-revision block instead of deleting them.
+- If clicking merge again later succeeds, the provider likely returned an intermittent empty response on the first attempt.
+- Refresh the SillyTavern page after updating Memoir, so the browser loads the newest extension files.
+
 ## Mobile Or Narrow Panel Feels Crowded
 
 Memoir supports smaller screens, but long prompt editing is more comfortable in fullscreen mode.

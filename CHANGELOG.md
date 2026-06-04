@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-06-04
+
+### Added
+
+- **Mature content archive compatibility** - Added an editable mature-content archive compatibility patch, enabled by default, to keep fictional narrative summaries stable when source text contains high-intensity violence, intimate/reproductive actions, or physiological descriptions. Users can edit, reset, or disable this patch from Settings.
+- **Empty-response recovery** - Added automatic retry handling for summary generation and Merge & Compress when the provider returns empty content or a filter-like empty result.
+- **Manual preservation fallback** - Added a final Merge & Compress fallback that preserves the selected original summaries as manual-revision text if the provider still returns no usable merged output.
+- **Visible recovery status** - Added summary and fusion status messages so users can see when Memoir retried a request or preserved content through a fallback path.
+
+### Changed
+
+- **Panel close behavior** - The floating panel no longer closes from a backdrop click or a second launcher click. Use the close button when you intentionally want to close the panel.
+- **Panel theme isolation** - Memoir's floating panel now uses plugin-owned theme variables instead of SillyTavern native theme variables, improving readability across both light and dark Memoir panel themes.
+- **Summary status display** - The Summary tab status range display now uses quieter text and badges, with changed ranges highlighted more clearly.
+
 ## [1.0.2] - 2026-04-05
 
 ### Changed

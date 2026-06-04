@@ -33,6 +33,9 @@ The `main` branch is production code for extension distribution. All development
 - **No inline-drawers.** Primary UI is a floating overlay modal with tab navigation.
 - **All CSS in `panel.js`.** Injected as a `<style>` element, scoped with `cc-` prefix.
 - **Use `--cc-*` CSS variables** for all colors. Theme presets override these.
+- **Do not rely on SillyTavern native theme variables** such as `SmartTheme*` inside the Memoir panel.
+- **Style text controls through scoped panel variables** including input, textarea, select, placeholder, focus, disabled, and option states.
+- **Do not close the panel from backdrop clicks** when a workflow may contain draft or edited text.
 - **Cards are collapsible** in the settings tab (`.cc-collapsible`).
 - **Long textareas get fullscreen** editing via `openFullscreenEditor()`.
 - **Mobile responsive** — all grids collapse to 1 column at `max-width: 720px`.

@@ -47,6 +47,7 @@ export function refreshSegmentsPanel() {
           <label class="cc-field"><span>${esc(t("segments.fuseEnd"))}</span>
             <input id="cc-fuse-end" class="cc-input" type="number" min="1" step="1" placeholder="5" value="${escA(fuseSelection.end)}"></label>
         </div>
+        <div class="cc-hint">${esc(t("segments.fusionRecoveryHint"))}</div>
       </div>
       <div class="cc-search-bar">
         <input id="cc-summary-search" class="cc-input" type="text" placeholder="搜索总结内容…">
@@ -97,8 +98,15 @@ function bindActions(root) {
             const ei = Number(root.querySelector("#cc-fuse-end")?.value || 0);
             fuseSelection = { start: si > 0 ? String(si) : "", end: ei > 0 ? String(ei) : "" };
             isFusing = true; refreshSegmentsPanel(); notify("info", t("toast.fusionStarted"));
-            await runFusionCompression({ startIndex: si > 0 ? si : null, endIndex: ei > 0 ? ei : null });
-            await syncInjectionPrompt(); refreshStatusPanel(); notify("success", t("toast.fusionDone"));
+            const result = await runFusionCompression({ startIndex: si > 0 ? si : null, endIndex: ei > 0 ? ei : null });
+            await syncInjectionPrompt(); refreshStatusPanel();
+            if (result.localFallbackUsed) {
+                notify("warning", t("toast.fusionFallbackUsed"));
+            } else if (result.emptyRetryUsed) {
+                notify("success", t("toast.fusionDoneAfterRetry"));
+            } else {
+                notify("success", t("toast.fusionDone"));
+            }
         } catch (e) { notify("error", e.message); } finally { isFusing = false; refreshSegmentsPanel(); }
     });
 }

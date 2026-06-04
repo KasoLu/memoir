@@ -51,10 +51,7 @@ export async function runCustomSummaryProvider(request) {
         }
 
         const data = await response.json();
-        const rawText = data?.choices?.[0]?.message?.content || "";
-        if (!rawText) {
-            throw new Error("Custom provider returned empty content.");
-        }
+        const rawText = extractMessageContent(data?.choices?.[0]?.message);
 
         const archiveSummary = String(rawText || "").trim();
         return {
@@ -69,4 +66,22 @@ export async function runCustomSummaryProvider(request) {
         clearTimeout(timeout);
         activeController = null;
     }
+}
+
+function extractMessageContent(message) {
+    const content = message?.content;
+    if (typeof content === "string") {
+        return content;
+    }
+    if (Array.isArray(content)) {
+        return content
+            .map((part) => {
+                if (typeof part === "string") {
+                    return part;
+                }
+                return part?.text || part?.content || "";
+            })
+            .join("");
+    }
+    return "";
 }

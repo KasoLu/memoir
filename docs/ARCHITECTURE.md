@@ -7,7 +7,7 @@ Memoir (古法 Memoir) is a third-party SillyTavern extension that provides cont
 ## V1 Flow
 
 1. User selects a floor range in the Workspace tab.
-2. Extension builds a prompt bundle (summary preset + style/fanfic templates).
+2. Extension builds a prompt bundle (summary preset + style/fanfic/content-compatibility templates).
 3. LLM provider generates a summary.
 4. User previews the result and confirms or discards.
 5. Confirmed summary is appended to cumulative text stored in `chat_metadata`.
@@ -80,4 +80,7 @@ Memoir uses SillyTavern's extension prompt layer and depth controls as a relativ
 Confirmed summaries can be measured with SillyTavern's token counter. Memoir now counts only the current cumulative summary text for UI display and editing feedback.
 
 ### Prompt presets save patch state
-Custom prompt presets store their associated style template and fanfic template selections, so switching presets restores the full configuration.
+Custom prompt presets store their associated style template, fanfic template, and content-compatibility template selections, so switching presets restores the full configuration.
+
+### Empty-response recovery
+Summary generation and fusion append the mature-content archive compatibility patch by default. Turning the setting off only affects the first normal request. If the provider returns empty content or a filter-like failure, Memoir retries once with the compatibility patch forced on plus a stronger recovery prompt. If the retry still produces no usable text, summary generation creates a non-empty local draft, while fusion preserves the original selected summaries as a manual-revision block.
