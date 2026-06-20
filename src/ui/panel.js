@@ -24,7 +24,7 @@ export function buildAndMountPanel() {
     const btn = document.createElement("div"); btn.id = ID.trigger; btn.className = "cc-trigger";
     btn.innerHTML = `<div class="cc-trigger-core"><i class="fa-solid fa-box-archive"></i></div>`;
     document.body.appendChild(btn); positionTrigger(btn, { force: true }); makeDraggable(btn, () => openPanel());
-    const ov = document.createElement("div"); ov.id = ID.overlay; ov.className = "cc-overlay"; ov.style.display = "none";
+    const ov = document.createElement("dialog"); ov.id = ID.overlay; ov.className = "cc-overlay";
     ov.innerHTML = modalHtml(); document.body.appendChild(ov);
     const reposition = () => positionTrigger(btn);
     globalThis.addEventListener?.("resize", reposition);
@@ -32,8 +32,32 @@ export function buildAndMountPanel() {
     bindPanelChrome(); applyTheme(currentThemeId);
     enhanceAllTextareas();
 }
-export function openPanel()  { const o=document.getElementById(ID.overlay); if(o) o.style.display="flex"; }
-export function closePanel() { const o=document.getElementById(ID.overlay); if(o) o.style.display="none"; }
+export function openPanel() {
+    const o = document.getElementById(ID.overlay);
+    if (!o) return;
+    if (typeof o.showModal === "function") {
+        if (o.open) return;
+        try {
+            o.showModal();
+            o.classList.remove("cc-dialog-fallback");
+            return;
+        } catch (_) {
+            // Fall through to non-modal open for older/hostile webviews.
+        }
+    }
+    o.classList.add("cc-dialog-fallback");
+    o.setAttribute("open", "");
+}
+export function closePanel() {
+    const o = document.getElementById(ID.overlay);
+    if (!o) return;
+    o.classList.remove("cc-dialog-fallback");
+    if (typeof o.close === "function" && o.open) {
+        o.close();
+        return;
+    }
+    o.removeAttribute("open");
+}
 export function togglePanel(){ openPanel(); }
 export function setTriggerVisible(v){ triggerVisible=v; const e=document.getElementById(ID.trigger); if(e) e.style.display=v?"flex":"none"; }
 
@@ -214,6 +238,9 @@ function settingsPage(){
 /* ===== Chrome binding ===== */
 function bindPanelChrome(){
     document.getElementById(ID.close)?.addEventListener("click",closePanel);
+    document.getElementById(ID.overlay)?.addEventListener("click",(event)=>{
+        if (event.target === event.currentTarget) closePanel();
+    });
     // Sidebar events are bound by settings-ui.js after loading settings.html
     document.querySelectorAll(".cc-tab").forEach(tab=>{tab.addEventListener("click",()=>{
         const tgt=tab.dataset.ccTab; if(!tgt)return;
@@ -437,14 +464,17 @@ const CSS = `
 .cc-trigger-core{width:100%;height:100%;display:inline-flex;align-items:center;justify-content:center;border-radius:inherit;font-size:15px}
 
 /* Overlay */
-.cc-overlay{position:fixed;inset:0;z-index:9001;display:none;align-items:center;justify-content:center;padding:14px;background:rgba(0,0,0,.45);backdrop-filter:blur(6px)}
+.cc-overlay{position:fixed;inset:0;width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;border:none;padding:14px;background:transparent;color:inherit;display:none;align-items:center;justify-content:center;box-sizing:border-box;overflow:visible}
+.cc-overlay[open]{display:flex}
+.cc-overlay::backdrop{background:rgba(0,0,0,.45);backdrop-filter:blur(6px)}
+.cc-overlay.cc-dialog-fallback{z-index:2147483647;background:rgba(0,0,0,.45);backdrop-filter:blur(6px)}
 
 /* Modal — plugin-owned default vars, overridden by theme inline styles */
 .cc-modal{
     --cc-bg:#182028;--cc-surface:#232d39;--cc-field:#121920;
     --cc-border:#435366;--cc-text:#eef3f7;--cc-dim:#9eb0c3;
     --cc-accent:#e4b35d;--cc-accent-soft:rgba(228,179,93,.16);
-    width:min(700px,calc(100vw - 28px));max-height:min(84vh,880px);display:flex;flex-direction:column;overflow:hidden;position:relative;
+    width:min(700px,calc(100vw - 28px));max-height:min(84dvh,calc(100dvh - 28px),880px);display:flex;flex-direction:column;overflow:hidden;position:relative;box-sizing:border-box;
     border:1px solid var(--cc-border);border-radius:18px;background:linear-gradient(180deg,var(--cc-surface) 0%,var(--cc-bg) 100%);
     color:var(--cc-text);box-shadow:0 20px 56px rgba(0,0,0,.5);font-family:inherit}
 
@@ -459,7 +489,7 @@ const CSS = `
 .cc-tab:hover{opacity:.85}.cc-tab.active{border-color:color-mix(in srgb,var(--cc-accent) 45%,transparent);background:var(--cc-accent-soft);opacity:1}
 
 /* Body */
-.cc-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:14px;overscroll-behavior:contain}
+.cc-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:14px;overscroll-behavior:contain}
 .cc-page{display:none}.cc-page.active{display:block}
 
 /* Card */
@@ -567,6 +597,12 @@ const CSS = `
 .cc-sb-check{display:flex;flex-direction:column;gap:4px;padding:6px 0}
 .cc-sb-check-label{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.92em;cursor:pointer}
 .cc-sb-check-desc{font-size:.82em;opacity:.55;line-height:1.45;padding-left:26px}
+
+/* ===== Tablet / constrained viewport ===== */
+@media(max-width:1180px),(max-height:820px),(pointer:coarse){
+    .cc-overlay{align-items:flex-start;justify-content:center;overflow-y:auto;padding:calc(env(safe-area-inset-top,0px) + 12px) max(12px, env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 12px) max(12px, env(safe-area-inset-left,0px))}
+    .cc-modal{max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 24px)}
+}
 
 /* ===== Mobile ===== */
 @media(max-width:720px){
