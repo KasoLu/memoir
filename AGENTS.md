@@ -30,15 +30,15 @@ The `main` branch is production code for extension distribution. All development
 
 ## 3. UI Guidelines
 
-- **No inline-drawers.** Primary UI is a floating overlay modal with tab navigation.
+- **No inline-drawers.** Primary UI is a native `<dialog>` modal opened with `showModal()`, with tab navigation inside the panel.
 - **All CSS in `panel.js`.** Injected as a `<style>` element, scoped with `cc-` prefix.
 - **Use `--cc-*` CSS variables** for all colors. Theme presets override these.
 - **Do not rely on SillyTavern native theme variables** such as `SmartTheme*` inside the Memoir panel.
 - **Style text controls through scoped panel variables** including input, textarea, select, placeholder, focus, disabled, and option states.
-- **Do not close the panel from backdrop clicks** when a workflow may contain draft or edited text.
+- **Do not close the panel from backdrop clicks or dialog cancel/Escape events** when a workflow may contain draft or edited text.
 - **Cards are collapsible** in the settings tab (`.cc-collapsible`).
 - **Long textareas get fullscreen** editing via `openFullscreenEditor()`.
-- **Mobile responsive** — all grids collapse to 1 column at `max-width: 720px`.
+- **Mobile responsive** — tablet/constrained-viewport rules keep the dialog in view; all grids collapse to 1 column at `max-width: 720px`.
 - See [`UI_GUIDELINES.md`](UI_GUIDELINES.md) for design rules.
 
 ## 4. Adding Settings
@@ -74,7 +74,7 @@ Follow Conventional Commits:
 
 - **Pure JS, no build step.** SillyTavern loads `index.js` directly. No webpack, no TypeScript.
 - **Self-contained i18n.** Fetches own JSON files, no namespace collision with other extensions.
-- **Overlay + Modal pattern** (not Popup API, not inline-drawer) for the floating panel.
+- **Native dialog modal pattern** (`dialog.showModal()`, not Popup API, not inline-drawer) for the floating panel so mobile stacking contexts cannot cover it.
 - **Draggable trigger** using pointer events, not SillyTavern's drag system.
 - **Soft stale detection.** Changed summaries continue working, just get flagged.
 - **Provider router.** Shared API vs Independent API selection with automatic fallback.

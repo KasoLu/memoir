@@ -238,9 +238,7 @@ function settingsPage(){
 /* ===== Chrome binding ===== */
 function bindPanelChrome(){
     document.getElementById(ID.close)?.addEventListener("click",closePanel);
-    document.getElementById(ID.overlay)?.addEventListener("click",(event)=>{
-        if (event.target === event.currentTarget) closePanel();
-    });
+    document.getElementById(ID.overlay)?.addEventListener("cancel",(event)=>event.preventDefault());
     // Sidebar events are bound by settings-ui.js after loading settings.html
     document.querySelectorAll(".cc-tab").forEach(tab=>{tab.addEventListener("click",()=>{
         const tgt=tab.dataset.ccTab; if(!tgt)return;

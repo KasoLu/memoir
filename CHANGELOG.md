@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] - 2026-06-20
+
+### Fixed
+
+- **Mobile panel layering** - The floating panel now opens through the browser's native `dialog.showModal()` top layer instead of relying on a fixed-position overlay and z-index. This prevents SillyTavern mobile UI or third-party stacking contexts from covering the Memoir panel.
+- **Tablet viewport fit** - The panel now uses dynamic viewport height (`dvh`), safe-area-aware padding, and constrained-height layout rules so tablet browsers with visible address bars do not cut off the panel header or controls.
+- **Safe panel closing preserved** - Backdrop clicks and Escape/cancel events no longer dismiss the panel; users must use the close button, preserving the existing anti-misclick behavior.
+
 ## [1.1.0] - 2026-06-04
 
 ### Added

@@ -1,6 +1,6 @@
 # UI Design Rules
 
-- Use floating overlay + modal pattern, NOT inline-drawers
+- Use native `<dialog>` + `showModal()` for the floating modal, NOT inline-drawers or plain fixed overlays
 - Tab navigation for top-level sections (Workspace / Summaries / Settings)
 - Card-based layout within tabs, collapsible where appropriate
 - Grid layout (2-col / 3-col), collapse to 1-col on mobile
@@ -10,6 +10,6 @@
 - Text inputs, textareas, selects, placeholders, focus states, disabled states, and select options must be styled with scoped `--cc-*` variables
 - Buttons always horizontal (`writing-mode: horizontal-tb`)
 - Long textareas get fullscreen editing buttons
-- Backdrop clicks must not close the modal when a workflow may contain unsaved draft or edited text
+- Backdrop clicks and dialog cancel/Escape events must not close the modal when a workflow may contain unsaved draft or edited text
 - Compact spacing, avoid long vertical forms
-- Mobile: safe-area padding, smaller font/padding, stacked grids
+- Mobile/tablet: `dvh` height, safe-area padding, constrained-viewport rules, smaller font/padding, stacked grids

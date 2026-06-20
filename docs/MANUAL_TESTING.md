@@ -141,18 +141,23 @@ Steps:
 
 1. Open the panel on desktop width.
 2. Repeat on a narrow/mobile width.
-3. Open fullscreen editors for long text fields.
-4. Click outside the panel while a draft or edited text exists.
-5. Click the floating launcher again while the panel is open.
-6. Close the panel with the close button.
+3. Repeat on a tablet-sized viewport, including a browser with the address bar visible if available.
+4. Open fullscreen editors for long text fields.
+5. Click outside the panel while a draft or edited text exists.
+6. Press Escape or trigger the browser dialog cancel path on desktop.
+7. Click the floating launcher again while the panel is open.
+8. Close the panel with the close button.
 
 Expected:
 
 - The panel remains usable on both widths.
+- On mobile and tablet, the panel appears above SillyTavern UI instead of behind headers, input bars, drawers, or other extension layers.
+- Tablet browsers do not cut off the panel header, tabs, or Workspace controls.
 - Fullscreen editors open correctly.
 - Long summary text remains editable and searchable in fullscreen.
 - On mobile, the floating trigger starts in a stable visible position near the top bar instead of drifting too low or off-screen.
 - Backdrop clicks do not close the panel.
+- Escape/cancel does not close the panel.
 - A second launcher click does not close the panel.
 - The close button still closes the panel.
 
@@ -174,7 +179,7 @@ Expected:
 
 Before tagging a release:
 
-- `manifest.json` version is `1.1.0`.
+- `manifest.json` version is `1.1.1`.
 - `README.md` and `README_EN.md` point to the correct repository URL.
 - `CHANGELOG.md` contains the release entry and date.
 - JavaScript syntax check passes.

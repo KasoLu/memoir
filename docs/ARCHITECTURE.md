@@ -61,8 +61,10 @@ Memoir (古法 Memoir) is a third-party SillyTavern extension that provides cont
 ### Self-contained i18n
 Fetches its own locale JSON files instead of using SillyTavern's `context.translate`. Avoids namespace collision with other extensions.
 
-### Overlay + Modal (not Popup / Drawer)
-The floating panel uses a full-viewport overlay with a centered modal, inspired by the chat cleaner v26 pattern. No dependency on SillyTavern's Popup API or inline-drawer system.
+### Native Dialog Modal (not Popup / Drawer)
+The floating panel uses a browser-native `<dialog>` opened with `showModal()`, with the Memoir panel rendered inside it. This puts the panel in the browser top layer so SillyTavern mobile UI and third-party stacking contexts cannot cover it. Memoir still does not depend on SillyTavern's Popup API or inline-drawer system.
+
+The dialog handles the backdrop through `::backdrop`. Backdrop clicks and dialog cancel/Escape events are intentionally ignored so drafts and edited text are not lost by an accidental close; the close button is the deliberate close path.
 
 ### CSS injected via JS
 All panel styles are in `panel.js` as a template literal, injected as a `<style>` element. This keeps `style.css` minimal and avoids SillyTavern's global CSS from interfering.
