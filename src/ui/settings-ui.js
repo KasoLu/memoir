@@ -586,7 +586,7 @@ function setPromptEditorBaseline(profile) {
     promptEditorState.dirty = false;
 }
 
-function refreshPromptEditorUi() {
+export function refreshPromptEditorUi() {
     const note = document.getElementById("cc-prompt-editor-note");
     const saveButton = document.getElementById("cc-prompt-profile-save");
     const deleteButton = document.getElementById("cc-prompt-profile-delete");

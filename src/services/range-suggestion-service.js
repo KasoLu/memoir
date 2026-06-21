@@ -13,8 +13,8 @@ export function getSuggestedDraftRange(defaultRangeSize = 20) {
         return {
             startMes,
             endMes,
-            startFloor: startMes + 1,
-            endFloor: endMes + 1,
+            startFloor: startMes,
+            endFloor: endMes,
         };
     }
 
@@ -22,8 +22,8 @@ export function getSuggestedDraftRange(defaultRangeSize = 20) {
         return {
             startMes: 0,
             endMes: 0,
-            startFloor: 1,
-            endFloor: 1,
+            startFloor: 0,
+            endFloor: 0,
         };
     }
 
@@ -32,7 +32,7 @@ export function getSuggestedDraftRange(defaultRangeSize = 20) {
     return {
         startMes,
         endMes,
-        startFloor: startMes + 1,
-        endFloor: endMes + 1,
+        startFloor: startMes,
+        endFloor: endMes,
     };
 }

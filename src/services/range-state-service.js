@@ -59,8 +59,8 @@ export function formatRanges(ranges) {
     return ranges
         .map((range) =>
             range.start === range.end
-                ? `${range.start + 1}`
-                : `${range.start + 1}-${range.end + 1}`,
+                ? `${range.start}`
+                : `${range.start}-${range.end}`,
         )
         .join(", ");
 }

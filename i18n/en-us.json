@@ -170,5 +170,6 @@
 
   "launcher.title": "Open Memoir",
 
-  "apiProfilePrompt": "Enter config name"
+  "apiProfilePrompt": "Enter config name",
+  "refreshUI": "Refresh UI"
 }

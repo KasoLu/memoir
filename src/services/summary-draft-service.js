@@ -14,8 +14,8 @@ export async function generateDraftForRange({ startMes, endMes }) {
         throw new Error("No messages found in the selected range.");
     }
 
-    const startFloor = Number(startMes) + 1;
-    const endFloor = Number(endMes) + 1;
+    const startFloor = Number(startMes);
+    const endFloor = Number(endMes);
     const filterRules = Array.isArray(settings.summaryFilterFragments)
         ? settings.summaryFilterFragments.map((item) => String(item || "")).filter(Boolean)
         : [];

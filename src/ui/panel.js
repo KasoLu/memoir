@@ -1,7 +1,10 @@
 import { t } from "../i18n.js";
 import { getSettings, updateSettings } from "../state/settings-store.js";
+import { refreshStatusPanel } from "./status-panel.js";
+import { refreshSegmentsPanel } from "./segments-panel.js";
+import { refreshPromptEditorUi } from "./settings-ui.js";
 
-const ID = { trigger:"cc-trigger", overlay:"cc-overlay", modal:"cc-modal", close:"cc-modal-close", style:"cc-panel-injected-style" };
+const ID = { trigger:"cc-trigger", overlay:"cc-overlay", modal:"cc-modal", close:"cc-modal-close", refresh:"cc-modal-refresh", style:"cc-panel-injected-style" };
 
 const THEMES = {
     auto:  null,
@@ -81,14 +84,14 @@ function applyTheme(id) {
 /* ===== HTML ===== */
 function modalHtml() {
     return `<div id="${ID.modal}" class="cc-modal">
-        <div class="cc-header"><div class="cc-title"><strong>${t("extensionName")}</strong><span>${t("workspace.desc")}</span></div><button id="${ID.close}" class="cc-close-btn">×</button></div>
+        <div class="cc-header"><div class="cc-title"><strong>${t("extensionName")}</strong><span>${t("workspace.desc")}</span></div><button id="${ID.refresh}" class="cc-btn">${t("refresh")}</button><button id="${ID.close}" class="cc-close-btn">×</button></div>
         <nav class="cc-tabs"><button class="cc-tab active" data-cc-tab="workspace">${t("workspace.title")}</button><button class="cc-tab" data-cc-tab="summary">${t("segments.title")}</button><button class="cc-tab" data-cc-tab="settings">${t("settings.title")}</button></nav>
         <div class="cc-body">${workspacePage()}${summaryPage()}${settingsPage()}</div></div>`;
 }
 function workspacePage(){return `<section class="cc-page active" data-cc-page="workspace">
     <div class="cc-card"><div class="cc-g3">
-        <label class="cc-field"><span>${t("workspace.rangeStart")}</span><input id="cc-range-start" class="cc-input" type="number" min="1" step="1"></label>
-        <label class="cc-field"><span>${t("workspace.rangeEnd")}</span><input id="cc-range-end" class="cc-input" type="number" min="1" step="1"></label>
+        <label class="cc-field"><span>${t("workspace.rangeStart")}</span><input id="cc-range-start" class="cc-input" type="number" min="0" step="1"></label>
+        <label class="cc-field"><span>${t("workspace.rangeEnd")}</span><input id="cc-range-end" class="cc-input" type="number" min="0" step="1"></label>
         <label class="cc-field"><span>${t("workspace.defaultRangeSize")}</span><input id="cc-default-range-size" class="cc-input" type="number" min="1" max="200" step="1"></label>
     </div><div class="cc-hint">${t("workspace.rangeHint")}</div></div>
     <div class="cc-card"><label class="cc-field"><span>${t("workspace.filterFragments")}</span><textarea id="cc-summary-filter-fragments" class="cc-textarea" rows="3" placeholder="${t("workspace.filterFragmentsPlaceholder")}"></textarea></label><div class="cc-hint">${t("workspace.filterHint")}</div></div>
@@ -237,6 +240,11 @@ function settingsPage(){
 
 /* ===== Chrome binding ===== */
 function bindPanelChrome(){
+    document.getElementById(ID.refresh)?.addEventListener("click", async () => {
+        refreshStatusPanel();
+        refreshSegmentsPanel();
+        refreshPromptEditorUi();
+    });
     document.getElementById(ID.close)?.addEventListener("click",closePanel);
     document.getElementById(ID.overlay)?.addEventListener("cancel",(event)=>event.preventDefault());
     // Sidebar events are bound by settings-ui.js after loading settings.html

@@ -27,7 +27,7 @@ export function bindDraftPanel() {
             return;
         }
 
-        if (!Number.isFinite(startFloor) || !Number.isFinite(endFloor) || startFloor < 1 || endFloor < startFloor) {
+        if (!Number.isFinite(startFloor) || !Number.isFinite(endFloor) || startFloor < 0 || endFloor < startFloor) {
             notify("warning", t("toast.invalidRange"));
             return;
         }
@@ -37,8 +37,8 @@ export function bindDraftPanel() {
         try {
             syncGenerationSettingsFromForm();
             const draft = await generateDraftForRange({
-                startMes: startFloor - 1,
-                endMes: endFloor - 1,
+                startMes: startFloor,
+                endMes: endFloor,
             });
 
             saveDraftSegment(draft);

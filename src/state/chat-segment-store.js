@@ -112,7 +112,7 @@ export function appendApprovedSummary(archiveSummary, rangeMeta) {
     }
 
     const nextIndex = (store.approvedRanges?.length || 0) + 1;
-    const title = `【第${nextIndex}次总结】(楼 ${Number(rangeMeta.startMes) + 1}-${Number(rangeMeta.endMes) + 1})`;
+    const title = `【第${nextIndex}次总结】(楼 ${Number(rangeMeta.startMes)}-${Number(rangeMeta.endMes)})`;
     const titledBlock = `${title}\n${block}`;
     const current = getCumulativeSummary();
     store.cumulativeSummary = current ? `${current}\n\n${titledBlock}` : titledBlock;
